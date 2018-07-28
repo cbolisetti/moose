@@ -174,4 +174,10 @@
                   " is set to true in the common action block but the subblocks do"
                   " not have the parameters required for a dynamic beam simulation using beam elements."
   [../]
+  [./beam_action_test16]
+    type = 'RunException'
+    input = '2_block_common.i'
+    cli_args = 'Modules/TensorMechanics/LineElementMaster/dynamic_nodal_translational_inertia=true'
+    expect_err = 'LineElementAction: Variable names for translational and rotational velocities and accelerations should be provided as input to perform dynamic simulation using beam elements'
+  [../]
 []

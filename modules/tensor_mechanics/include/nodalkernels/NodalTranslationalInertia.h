@@ -83,4 +83,3 @@ protected:
   /// du_dotdot_du variable value
   const MooseArray<Number> * _du_dotdot_du;
 };
-
