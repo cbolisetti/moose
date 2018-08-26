@@ -61,10 +61,10 @@ StressDivergenceTensorsTruss::initialSetup()
 void
 StressDivergenceTensorsTruss::computeResidual()
 {
-  DenseVector<Number> & re = _assembly.residualBlock(_var.number());
+  prepareVectorTag(_assembly, _var.number());
+  precalculateResidual();
+
   mooseAssert(re.size() == 2, "Truss element has and only has two nodes.");
-  _local_re.resize(re.size());
-  _local_re.zero();
 
   RealGradient orientation((*_orientation)[0]);
   orientation /= orientation.norm();
@@ -74,13 +74,13 @@ StressDivergenceTensorsTruss::computeResidual()
   _local_re(0) = -force_local(_component);
   _local_re(1) = -_local_re(0);
 
-  re += _local_re;
+  accumulateTaggedLocalResidual();
 
   if (_has_save_in)
   {
     Threads::spin_mutex::scoped_lock lock(Threads::spin_mtx);
-    for (unsigned int i = 0; i < _save_in.size(); ++i)
-      _save_in[i]->sys().solution().add_vector(_local_re, _save_in[i]->dofIndices());
+    for (const auto & var : _save_in)
+      var->sys().solution().add_vector(_local_re, var->dofIndices());
   }
 }
 
@@ -96,26 +96,27 @@ StressDivergenceTensorsTruss::computeStiffness(unsigned int i, unsigned int j)
 void
 StressDivergenceTensorsTruss::computeJacobian()
 {
-  DenseMatrix<Number> & ke = _assembly.jacobianBlock(_var.number(), _var.number());
-  _local_ke.resize(ke.m(), ke.n());
+  prepareMatrixTag(_assembly, _var.number(), _var.number());
+
+  precalculateJacobian();
   _local_ke.zero();
 
   for (unsigned int i = 0; i < _test.size(); ++i)
     for (unsigned int j = 0; j < _phi.size(); ++j)
       _local_ke(i, j) += (i == j ? 1 : -1) * computeStiffness(_component, _component);
 
-  ke += _local_ke;
+  accumulateTaggedLocalMatrix();
 
   if (_has_diag_save_in)
   {
-    unsigned int rows = ke.m();
+    unsigned int rows = _local_ke.m();
     DenseVector<Number> diag(rows);
-    for (unsigned int i = 0; i < rows; ++i)
+    for (unsigned int i = 0; i < rows; i++)
       diag(i) = _local_ke(i, i);
 
     Threads::spin_mutex::scoped_lock lock(Threads::spin_mtx);
-    for (unsigned int i = 0; i < _diag_save_in.size(); ++i)
-      _diag_save_in[i]->sys().solution().add_vector(diag, _diag_save_in[i]->dofIndices());
+    for (const auto & var : _diag_save_in)
+      var->sys().solution().add_vector(diag, var->dofIndices());
   }
 }
 
@@ -127,6 +128,12 @@ StressDivergenceTensorsTruss::computeOffDiagJacobian(MooseVariableFEBase & jvar)
     computeJacobian();
   else
   {
+    prepareMatrixTag(_assembly, _var.number(), jvar_num);
+    if (_local_ke.m() != _test.size() || _local_ke.n() != jvar.phiSize())
+     return;
+    _local_ke.zero();
+
+    precalculateOffDiagJacobian(jvar_num);
     unsigned int coupled_component = 0;
     bool disp_coupled = false;
 
@@ -138,14 +145,13 @@ StressDivergenceTensorsTruss::computeOffDiagJacobian(MooseVariableFEBase & jvar)
         break;
       }
 
-    DenseMatrix<Number> & ke = _assembly.jacobianBlock(_var.number(), jvar_num);
-
     if (disp_coupled)
       for (unsigned int i = 0; i < _test.size(); ++i)
         for (unsigned int j = 0; j < jvar.phiSize(); ++j)
-          ke(i, j) += (i == j ? 1 : -1) * computeStiffness(_component, coupled_component);
+          _local_ke(i, j) += (i == j ? 1 : -1) * computeStiffness(_component, coupled_component);
     else if (false) // Need some code here for coupling with temperature
     {
     }
+    accumulateTaggedLocalMatrix();
   }
 }
