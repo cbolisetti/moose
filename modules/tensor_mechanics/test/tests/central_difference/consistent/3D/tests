@@ -1,0 +1,15 @@
+[Tests]
+  # 3D implicit analysis with Newmark Beta time integration
+  [./implicit]
+    type = 'CSVDiff'
+    input = '3d_consistent_implicit.i'
+    csvdiff = '3d_consistent_implicit_out.csv'
+  [../]
+
+  # 3D explicit analysis of the above problem with Central Difference time integration
+  [./explicit]
+    type = 'CSVDiff'
+    input = '3d_consistent_explicit.i'
+    csvdiff = '3d_consistent_explicit_out.csv'
+  [../]
+[]

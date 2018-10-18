@@ -94,4 +94,3 @@ ActuallyExplicitEuler::computeTimeDerivativeHelper(T & u_dot, const T2 & u_old) 
   u_dot -= u_old;
   u_dot *= 1. / _dt;
 }
-
