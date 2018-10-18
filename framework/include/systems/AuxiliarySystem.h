@@ -25,6 +25,8 @@ typedef AuxKernelTempl<RealVectorValue> VectorAuxKernel;
 class FEProblemBase;
 class TimeIntegrator;
 class AuxScalarKernel;
+class AuxKernel;
+class FEProblemBase;
 
 // libMesh forward declarations
 namespace libMesh
@@ -180,6 +182,8 @@ public:
   virtual System & system() override { return _sys; }
   virtual const System & system() const override { return _sys; }
 
+  virtual NumericVector<Number> * solutionState(unsigned int i) override;
+
   virtual void setPreviousNewtonSolution();
 
   void setScalarVariableCoupleableTags(ExecFlagType type);
@@ -224,6 +228,8 @@ public:
   NumericVector<Number> * _u_dot_old;
   /// Old solution vector for u^dotdot
   NumericVector<Number> * _u_dotdot_old;
+
+  std::vector<NumericVector<Number> *> _solution_state;
 
   /// Whether or not a copy of the residual needs to be made
   bool _need_serialized_solution;
