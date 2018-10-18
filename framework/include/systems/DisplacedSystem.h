@@ -172,6 +172,11 @@ public:
     return _undisplaced_system.solutionUDotDotOld();
   }
 
+  virtual NumericVector<Number> * solutionState(unsigned int i) override
+  {
+    return _undisplaced_system.solutionState(i);
+  }
+
   virtual NumericVector<Number> * solutionPreviousNewton() override { return NULL; }
 
   virtual TransientExplicitSystem & sys() { return _sys; }

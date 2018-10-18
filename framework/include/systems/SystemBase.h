@@ -151,6 +151,7 @@ public:
   virtual NumericVector<Number> & solution() = 0;
   virtual NumericVector<Number> & solutionOld() = 0;
   virtual NumericVector<Number> & solutionOlder() = 0;
+  virtual NumericVector<Number> * solutionState(unsigned int i) = 0;
   virtual NumericVector<Number> * solutionPreviousNewton() = 0;
 
   virtual Number & duDotDu() { return _du_dot_du; }
@@ -702,6 +703,9 @@ protected:
 
   /// Maximum number of dofs for any one variable on any one element
   size_t _max_var_n_dofs_per_elem;
+
+  std::vector<NumericVector<Real> *> _saved_solution_state;
+  unsigned int _solution_state_size;
 };
 
 #define PARALLEL_TRY

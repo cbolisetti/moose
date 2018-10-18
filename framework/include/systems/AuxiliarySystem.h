@@ -24,6 +24,7 @@ class FEProblemBase;
 class TimeIntegrator;
 class AuxScalarKernel;
 class AuxKernel;
+class FEProblemBase;
 
 // libMesh forward declarations
 namespace libMesh
@@ -164,6 +165,9 @@ public:
 
   virtual NumericVector<Number> * solutionUDotOld() override { return _u_dot_old; }
   virtual NumericVector<Number> * solutionUDotDotOld() override { return _u_dotdot_old; }
+
+  virtual NumericVector<Number> * solutionState(unsigned int i) override;
+
   virtual NumericVector<Number> * solutionPreviousNewton() override
   {
     return _solution_previous_nl;
@@ -201,6 +205,8 @@ protected:
   NumericVector<Number> * _u_dot_old;
   /// Old solution vector for u^dotdot
   NumericVector<Number> * _u_dotdot_old;
+
+  std::vector<NumericVector<Number> *> _solution_state;
 
   /// Whether or not a copy of the residual needs to be made
   bool _need_serialized_solution;
