@@ -98,6 +98,8 @@ SystemBase::SystemBase(SubProblem & subproblem,
     _max_var_n_dofs_per_elem(0),
     _max_var_n_dofs_per_node(0),
     _time_integrator(nullptr)
+    _saved_solution_state(0),
+    _solution_state_size(0)
 {
 }
 
@@ -488,6 +490,20 @@ SystemBase::saveOldSolutions()
 
   if (solutionUDotDotOld())
     *_saved_dotdot_old = *solutionUDotDotOld();
+
+  if (_solution_state_size > 3)
+  {
+    if (_saved_solution_state.size() == 0)
+    {
+      _saved_solution_state.resize(_solution_state_size);
+      for (unsigned int i = 0; i < _solution_state_size; ++i)
+        _saved_solution_state[i] =
+            &addVector("save_solution_state_" + std::to_string(i), false, PARALLEL);
+    }
+
+    for (unsigned int i = 0; i < _solution_state_size; ++i)
+      *(_saved_solution_state[i]) = *solutionState(i);
+  }
 }
 
 /**
@@ -519,6 +535,15 @@ SystemBase::restoreOldSolutions()
     *solutionUDotDotOld() = *_saved_dotdot_old;
     removeVector("save_solution_dotdot_old");
     _saved_dotdot_old = NULL;
+  }
+  if (_saved_solution_state.size() != 0 && _solution_state_size > 3)
+  {
+    for (unsigned int i = 0; i < _solution_state_size; ++i)
+    {
+      *solutionState(i) = *(_saved_solution_state[i]);
+      removeVector("save_solution_state" + std::to_string(i));
+    }
+    _saved_solution_state.clear();
   }
 }
 
@@ -977,6 +1002,10 @@ SystemBase::copySolutionsBackwards()
     *solutionUDotDotOld() = *solutionUDotDot();
   if (solutionPreviousNewton())
     *solutionPreviousNewton() = *currentSolution();
+
+  if (_solution_state_size > 3)
+    for (unsigned int i = 0; i < _solution_state_size; ++i)
+      *solutionState(i) = *currentSolution();
 }
 
 /**
@@ -993,6 +1022,15 @@ SystemBase::copyOldSolutions()
     *solutionUDotDotOld() = *solutionUDotDot();
   if (solutionPreviousNewton())
     *solutionPreviousNewton() = *currentSolution();
+
+  if (_solution_state_size > 3)
+  {
+    for (unsigned int i = _solution_state_size - 1; i > 1; --i)
+      *solutionState(i) = *solutionState(i - 1);
+
+    *solutionState(1) = *currentSolution();
+    *solutionState(0) = *currentSolution();
+  }
 }
 
 /**
@@ -1009,6 +1047,10 @@ SystemBase::restoreSolutions()
     *solutionUDotDot() = *solutionUDotDotOld();
   if (solutionPreviousNewton())
     *solutionPreviousNewton() = solutionOld();
+
+  if (_solution_state_size > 3)
+    *solutionState(0) = *solutionState(1);
+
   system().update();
 }
 

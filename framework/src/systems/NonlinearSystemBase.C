@@ -160,7 +160,8 @@ NonlinearSystemBase::NonlinearSystemBase(FEProblemBase & fe_problem,
     _compute_jacobian_tags_timer(registerTimedSection("computeJacobianTags", 5)),
     _compute_jacobian_blocks_timer(registerTimedSection("computeJacobianBlocks", 3)),
     _compute_dampers_timer(registerTimedSection("computeDampers", 3)),
-    _compute_dirac_timer(registerTimedSection("computeDirac", 3))
+    _compute_dirac_timer(registerTimedSection("computeDirac", 3)),
+    _solution_state(0)
 {
   getResidualNonTimeVector();
   // Don't need to add the matrix - it already exists (for now)
@@ -224,6 +225,14 @@ NonlinearSystemBase::addDotVectors()
     _u_dotdot = &addVector("u_dotdot", true, GHOSTED);
   if (_fe_problem.uDotDotOldRequested())
     _u_dotdot_old = &addVector("u_dotdot_old", true, GHOSTED);
+
+  if (_fe_problem.getSolutionState() > 3)
+  {
+    _solution_state_size = _fe_problem.getSolutionState();
+    _solution_state.resize(_fe_problem.getSolutionState());
+    for (unsigned int i = 0; i < _fe_problem.getSolutionState(); ++i)
+      _solution_state[i] = &addVector("solution_state_" + std::to_string(i), true, GHOSTED);
+  }
 }
 
 void
@@ -2890,6 +2899,17 @@ NonlinearSystemBase::setSolutionUDotDotOld(const NumericVector<Number> & u_dotdo
   *_u_dotdot_old = u_dotdot_old;
 }
 
+void
+NonlinearSystemBase::setSolutionState(const std::vector<NumericVector<Number>> & solution_state)
+{
+  if (solution_state.size() != _fe_problem.getSolutionState())
+    mooseError("NonlinearSystemBase: Size of solution state should match the SolutionState "
+               "provided by FeProblem.");
+
+  for (unsigned int i = 0; i < _fe_problem.getSolutionState(); ++i)
+    *_solution_state[i] = solution_state[i];
+}
+
 NumericVector<Number> &
 NonlinearSystemBase::serializedSolution()
 {
@@ -3052,4 +3072,18 @@ NonlinearSystemBase::setPreviousNewtonSolution(const NumericVector<Number> & sol
 {
   if (_solution_previous_nl)
     *_solution_previous_nl = soln;
+}
+
+NumericVector<Number> *
+NonlinearSystemBase::solutionState(unsigned int i)
+{
+  if (_fe_problem.getSolutionState() > 3 && i < _fe_problem.getSolutionState())
+    return _solution_state[i];
+  else if (_fe_problem.getSolutionState() <= 3)
+    mooseError("NonlinearSystemBase: If only current, old or older solution is required, please "
+               "use solution(), solutionOld() or solutionOlder(), respectively.");
+  else
+    mooseError("NonlinearSystemBase: Requested solutionState is not saved, please make sure "
+               "solution state is less than" +
+               std::to_string(_fe_problem.getSolutionState()));
 }

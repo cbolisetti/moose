@@ -584,9 +584,13 @@ public:
     return _solution_previous_nl;
   }
 
+  virtual NumericVector<Number> * solutionState(unsigned int i) override;
+
   virtual void setSolutionUDotOld(const NumericVector<Number> & u_dot_old);
 
   virtual void setSolutionUDotDotOld(const NumericVector<Number> & u_dotdot_old);
+
+  virtual void setSolutionState(const std::vector<NumericVector<Number>> & solution_state);
 
   virtual void setPreviousNewtonSolution(const NumericVector<Number> & soln);
 
@@ -829,6 +833,8 @@ protected:
   PerfID _compute_jacobian_blocks_timer;
   PerfID _compute_dampers_timer;
   PerfID _compute_dirac_timer;
+
+  std::vector<NumericVector<Number> *> _solution_state;
 };
 
 #endif /* NONLINEARSYSTEMBASE_H */

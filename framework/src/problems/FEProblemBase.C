@@ -317,7 +317,8 @@ FEProblemBase::FEProblemBase(const InputParameters & parameters)
     _u_dot_requested(false),
     _u_dotdot_requested(false),
     _u_dot_old_requested(false),
-    _u_dotdot_old_requested(false)
+    _u_dotdot_old_requested(false),
+    _solution_state(0)
 {
 
   _time = 0.0;
@@ -325,6 +326,7 @@ FEProblemBase::FEProblemBase(const InputParameters & parameters)
   _t_step = 0;
   _dt = 0;
   _dt_old = _dt;
+  _solution_state = 0;
 
   unsigned int n_threads = libMesh::n_threads();
 
@@ -4376,7 +4378,8 @@ FEProblemBase::addTimeIntegrator(const std::string & type,
   _nl->addTimeIntegrator(type, name, parameters);
   _has_time_integrator = true;
 
-  // add vectors to store u_dot, u_dotdot, udot_old and u_dotdot_old if requested by the time
+  // add vectors to store u_dot, u_dotdot, udot_old, u_dotdot_old and
+  // solution vectors older than 2 time steps, if requested by the time
   // integrator
   _aux->addDotVectors();
   _nl->addDotVectors();
