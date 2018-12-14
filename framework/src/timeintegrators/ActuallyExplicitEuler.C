@@ -144,11 +144,16 @@ ActuallyExplicitEuler::solve()
   // The residual is on the RHS
   _explicit_residual *= -1.;
 
+  std::cout << "EXPLICIT RESIDUAL IS:\n" << _explicit_residual << std::endl;
+
   // Compute the mass matrix
   _fe_problem.computeJacobianTag(*libmesh_system.current_local_solution, mass_matrix, _Ke_time_tag);
 
   // Still testing whether leaving the old update is a good idea or not
   // _explicit_euler_update = 0;
+
+  // printing mass matrix
+  std::cout << "MASS MATRIX IS:\n" << mass_matrix << std::endl;
 
   auto converged = false;
 
@@ -175,6 +180,8 @@ ActuallyExplicitEuler::solve()
       // Note: This is actually how PETSc does it
       // It's not "perfectly optimal" - but it will be fast (and universal)
       mass_matrix.vector_mult(_mass_matrix_diag, *_ones);
+      std::cout << "LUMPED MASS MATRIX IS:\n" << _mass_matrix_diag << std::endl;
+
 
       // "Invert" the diagonal mass matrix
       _mass_matrix_diag.reciprocal();

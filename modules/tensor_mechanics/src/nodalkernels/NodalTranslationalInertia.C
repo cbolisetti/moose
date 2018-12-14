@@ -47,6 +47,7 @@ validParams<NodalTranslationalInertia>()
   params.addParam<FileName>(
       "nodal_mass_file",
       "The file containing the nodal positions and the corresponding nodal masses.");
+  params.addParam<bool>("central_difference", false, "Switch for central difference integration.");
   return params;
 }
 
@@ -72,6 +73,7 @@ NodalTranslationalInertia::NodalTranslationalInertia(const InputParameters & par
   else if (!isParamValid("beta") && !isParamValid("gamma") && !isParamValid("velocity") &&
            !isParamValid("acceleration"))
   {
+    _u_old =  &(_var.dofValuesOld());
     _vel = &(_var.dofValuesDot());
     _vel_old = &(_var.dofValuesDotOld());
     _accel = &(_var.dofValuesDotDot());
@@ -168,9 +170,19 @@ NodalTranslationalInertia::computeQpResidual()
       const Real vel = vel_old + (_dt * (1 - _gamma)) * accel_old + _gamma * _dt * accel;
       return mass * (accel + vel * _eta * (1 + _alpha) - _alpha * _eta * vel_old);
     }
+
+    else if (getParam<bool>("central_difference"))
+      {
+        std::cout << "MASS RESIDUAL FROM NODAL TRANSLATIONAL INERTIA:\n" << mass * ((*_u_old)[_qp] - 2 * _u[_qp]) / _dt / _dt << std::endl;
+        return mass * ((*_u_old)[_qp] - 2 * _u[_qp]) / _dt / _dt;
+      }
+
     else
-      return mass * ((*_accel)[_qp] + (*_vel)[_qp] * _eta * (1.0 + _alpha) -
+      {
+        std::cout << "Also executing this!!????????????\n";
+        return mass * ((*_accel)[_qp] + (*_vel)[_qp] * _eta * (1.0 + _alpha) -
                      _alpha * _eta * (*_vel_old)[_qp]);
+      }
   }
 }
 
@@ -194,6 +206,7 @@ NodalTranslationalInertia::computeQpJacobian()
         mooseError("NodalTranslationalInertia: Unable to find an entry for the current node in the "
                    "_node_id_to_mass map.");
     }
+    std::cout << "MASS FROM NODAL TRANS INERTIA\t:" << mass * (*_du_dotdot_du)[_qp] << std:: endl;
 
     if (isParamValid("beta"))
       return mass / (_beta * _dt * _dt) + _eta * (1 + _alpha) * mass * _gamma / _beta / _dt;

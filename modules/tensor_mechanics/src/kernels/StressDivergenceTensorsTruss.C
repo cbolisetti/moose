@@ -76,6 +76,8 @@ StressDivergenceTensorsTruss::computeResidual()
 
   re += _local_re;
 
+  std::cout << "RESIDUAL FROM KERNEL IS: \n" << _local_re << std::endl;
+
   if (_has_save_in)
   {
     Threads::spin_mutex::scoped_lock lock(Threads::spin_mtx);
