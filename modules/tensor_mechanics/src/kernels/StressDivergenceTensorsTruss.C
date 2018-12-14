@@ -76,7 +76,8 @@ StressDivergenceTensorsTruss::computeResidual()
 
   re += _local_re;
 
-  std::cout << "RESIDUAL FROM KERNEL IS: \n" << _local_re << std::endl;
+  std::cout << "STRESS is: \t" << _axial_stress[0] << std::endl;
+  std::cout << "RESIDUAL FROM STRESS DIVERGENCE TRUSS KERNEL IS: \n" << _local_re << std::endl;
 
   if (_has_save_in)
   {

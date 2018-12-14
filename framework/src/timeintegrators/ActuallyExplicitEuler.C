@@ -152,9 +152,6 @@ ActuallyExplicitEuler::solve()
   // Still testing whether leaving the old update is a good idea or not
   // _explicit_euler_update = 0;
 
-  // printing mass matrix
-  std::cout << "MASS MATRIX IS:\n" << mass_matrix << std::endl;
-
   auto converged = false;
 
   switch (_solve_type)

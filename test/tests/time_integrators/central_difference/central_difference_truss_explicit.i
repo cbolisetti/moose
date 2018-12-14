@@ -183,11 +183,11 @@
 []
 
 [Functions]
-  [./x_right]
-    type = PiecewiseLinear
-    x = '0   1'
-    y = '0 0.1'
-  [../]
+  # [./x_right]
+  #   type = PiecewiseLinear
+  #   x = '0   1'
+  #   y = '0 0.1'
+  # [../]
   [./force_x]
     type = PiecewiseLinear
     x = '0.0 1.0 2.0 3.0 4.0' # time
@@ -252,13 +252,13 @@
 
 [Executioner]
   type = Transient
-  solve_type = PJFNK
-  nl_rel_tol = 1e-8
-  nl_abs_tol = 1e-8
-  dtmin = 1e-4
-  timestep_tolerance = 1e-6
-  start_time = -0.05
-  end_time = 2.0
+  # solve_type =
+  # nl_rel_tol = 1e-8
+  # nl_abs_tol = 1e-8
+  # dtmin = 1e-4
+  # timestep_tolerance = 1e-6
+  start_time = -0.010
+  end_time = 0.5
   dt = 0.005
   [./TimeIntegrator]
     type = CentralDifference
