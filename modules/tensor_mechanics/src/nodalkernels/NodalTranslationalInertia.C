@@ -73,6 +73,7 @@ NodalTranslationalInertia::NodalTranslationalInertia(const InputParameters & par
   else if (!isParamValid("beta") && !isParamValid("gamma") && !isParamValid("velocity") &&
            !isParamValid("acceleration"))
   {
+    _u_older =  &(_var.dofValuesOlder());
     _u_old =  &(_var.dofValuesOld());
     _vel = &(_var.dofValuesDot());
     _vel_old = &(_var.dofValuesDotOld());
@@ -173,10 +174,17 @@ NodalTranslationalInertia::computeQpResidual()
 
     else if (getParam<bool>("central_difference"))
       {
-        // std::cout << "MASS RESIDUAL FROM NODAL TRANSLATIONAL INERTIA:\n" << mass * ((*_u_old)[_qp] - 2 * _u[_qp]) / _dt / _dt << std::endl;
+        // Real mass_residual;
+        // if (_t_step == 1)
+        //   mass_residual = mass * (0.0 - 2.0 * _u[_qp]) / _dt / _dt; // _u_older is 0.0 at the first time step
+        // else
+        //   mass_residual = mass * ((*_u_older)[_qp] - 2.0 * _u[_qp]) / _dt / _dt;
+
+        std::cout << "MASS RESIDUAL FROM NODAL TRANSLATIONAL INERTIA:\n" << mass * ((*_u_older)[_qp] - 2.0 * (*_u_old)[_qp]) / (_dt * _dt) << std::endl;
         std::cout << "SOLUTION\n" << _u[_qp] << std::endl;
         std::cout << "SOLUTION_OLD\n" << (*_u_old)[_qp] << std::endl;
-        return mass * ((*_u_old)[_qp] - 2 * _u[_qp]) / _dt / _dt;
+        std::cout << "SOLUTION_OLDER\n" << (*_u_older)[_qp] << std::endl;
+        return mass * ((*_u_older)[_qp] - 2.0 * (*_u_old)[_qp]) / _dt / _dt;
       }
 
     else

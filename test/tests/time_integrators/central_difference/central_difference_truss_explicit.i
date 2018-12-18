@@ -192,6 +192,8 @@
     type = PiecewiseLinear
     x = '0.0 1.0 2.0 3.0 4.0' # time
     y = '0.0 1.0 0.0 -1.0 0.0'  # force
+    # x = '0.0 0.1 0.11 3.0 4.0' # time
+    # y = '0.0 1.0 0 0 0' # force
     scale_factor = 1e3
   [../]
 []
@@ -258,8 +260,8 @@
   # dtmin = 1e-4
   # timestep_tolerance = 1e-6
   start_time = -0.010
-  end_time = 0.5
-  dt = 0.005
+  end_time = 8.0
+  dt = 0.01
   [./TimeIntegrator]
     type = CentralDifference
     solve_type = lumped
@@ -294,7 +296,7 @@
 # []
 
 [Outputs]
-  exodus = true
+  exodus = false
   csv = true
-  perf_graph = true
+  perf_graph = false
 []

@@ -253,7 +253,7 @@
   timestep_tolerance = 1e-6
   start_time = -0.05
   end_time = 8
-  dt = 0.005
+  dt = 0.01
   [./TimeIntegrator]
     type = NewmarkBeta
     beta = 0.25
@@ -289,7 +289,7 @@
 # []
 
 [Outputs]
-  exodus = true
+  exodus = false
   csv = true
-  perf_graph = true
+  perf_graph = false
 []

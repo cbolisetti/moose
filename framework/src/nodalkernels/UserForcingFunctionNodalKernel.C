@@ -30,6 +30,6 @@ UserForcingFunctionNodalKernel::UserForcingFunctionNodalKernel(const InputParame
 Real
 UserForcingFunctionNodalKernel::computeQpResidual()
 {
-  std::cout << "RESIDUAL FROM FORCING FUNCTION NODAL KERNEL: \t" << -_func.value(_t, (*_current_node)) << std::endl;
+  std::cout << "RESIDUAL FROM FORCING FUNCTION NODAL KERNEL: \n" << -_func.value(_t, (*_current_node)) << std::endl;
   return -_func.value(_t, (*_current_node));
 }

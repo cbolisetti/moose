@@ -216,8 +216,9 @@ ActuallyExplicitEuler::solve()
       mooseError("Unknown solve_type in ActuallyExplicitEuler ");
   }
 
-  *libmesh_system.solution = nonlinear_system.solutionOld();
-  *libmesh_system.solution += _explicit_euler_update;
+  // *libmesh_system.solution = nonlinear_system.solutionOld();
+  *libmesh_system.solution = _explicit_euler_update;
+  std::cout << "EXPLICIT EULER UPDATE: \n" << _explicit_euler_update << std::endl;
 
   // Enforce contraints on the solution
   DofMap & dof_map = libmesh_system.get_dof_map();
