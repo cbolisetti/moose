@@ -1,4 +1,4 @@
-# Test for central difference integration for a single truss element
+# Test for central difference integration for a 1D element
 
 [Mesh]
   type = GeneratedMesh
@@ -44,11 +44,11 @@
 #     order = CONSTANT
 #     family = MONOMIAL
 #   [../]
-  [./area]
-    order = CONSTANT
-    family = MONOMIAL
-#    initial_condition = 1.0
-  [../]
+#   [./area]
+#     order = CONSTANT
+#     family = MONOMIAL
+# #    initial_condition = 1.0
+#   [../]
 #   [./react_x]
 #     order = FIRST
 #     family = LAGRANGE
@@ -76,13 +76,13 @@
   #   property = e_over_l
   #   variable = e_over_l
   # [../]
-  [./area]
-    type = ConstantAux
-    block = '0'
-    variable = area
-    value = 1.0
-    execute_on = 'initial timestep_begin'
-  [../]
+  # [./area]
+  #   type = ConstantAux
+  #   block = '0'
+  #   variable = area
+  #   value = 1.0
+  #   execute_on = 'initial timestep_begin'
+  # [../]
   # [./accel_x]
   #   type = NewmarkAccelAux
   #   variable = accel_x
@@ -131,15 +131,29 @@
 []
 
 [Kernels]
-  [./solid_x]
-    type = StressDivergenceTensorsTruss
-    block = '0'
+  [./DynamicTensorMechanics]
     displacements = 'disp_x'
-    component = 0
-    variable = disp_x
-    area = area
-    # save_in = react_x
+    # zeta = 0.00006366
   [../]
+  [./inertia_x]
+    type = InertialForce
+    variable = disp_x
+    central_difference = true
+    # velocity = vel_x
+    # acceleration = accel_x
+    # beta = 0.25
+    # gamma = 0.5
+    # eta = 7.854
+  [../]
+  # [./solid_x]
+  #   type = StressDivergenceTensorsTruss
+  #   block = '0'
+  #   displacements = 'disp_x'
+  #   component = 0
+  #   variable = disp_x
+  #   area = area
+  #   # save_in = react_x
+  # [../]
   # [./solid_y]
   #   type = StressDivergenceTensorsTruss
   #   block = '0'
@@ -161,18 +175,18 @@
 []
 
 [NodalKernels]
-  [./x_nodal_mass]
-    type = NodalTranslationalInertia
-    block = '0'
-    variable = disp_x
-    boundary = right
-    mass = 1e3
-    # velocity = vel_x
-    # acceleration = accel_x
-    # beta = 0.25
-    # gamma = 0.5
-    # eta = 0.0162 # Rayleigh damping
-  [../]
+  # [./x_nodal_mass]
+  #   type = NodalTranslationalInertia
+  #   block = '0'
+  #   variable = disp_x
+  #   boundary = right
+  #   mass = 1e3
+  #   # velocity = vel_x
+  #   # acceleration = accel_x
+  #   # beta = 0.25
+  #   # gamma = 0.5
+  #   # eta = 0.0162 # Rayleigh damping
+  # [../]
   [./force_x]
     type = UserForcingFunctionNodalKernel
     variable = disp_x
@@ -182,11 +196,11 @@
 []
 
 [Functions]
-  [./x_right]
-    type = PiecewiseLinear
-    x = '0   1'
-    y = '0 0.1'
-  [../]
+  # [./x_right]
+  #   type = PiecewiseLinear
+  #   x = '0   1'
+  #   y = '0 0.1'
+  # [../]
   [./force_x]
     type = PiecewiseLinear
     x = '0.0 1.0 2.0 3.0 4.0' # time
@@ -203,11 +217,11 @@
     value = 0.0
   [../]
   # [./fixx2]
-  #   type = DirichletBC
+  #   type = FunctionDirichletBC
   #   variable = disp_x
   #   boundary = right
-  #   # function = x_right
-  #   value = 0.0
+  #   function = x_right
+  #   # value = 0.0
   # [../]
   # [./fixy1]
   #   type = DirichletBC
@@ -236,28 +250,43 @@
 []
 
 [Materials]
-  [./linelast]
-    type = LinearElasticTruss
-    block = '0'
+  [./elasticity_tensor_block]
+    type = ComputeIsotropicElasticityTensor
     youngs_modulus = 1e6
+    poissons_ratio = 0.25
+    block = 0
+  [../]
+  [./strain_block]
+    type = ComputeIncrementalSmallStrain
+    block = 0
     displacements = 'disp_x'
+  [../]
+  [./stress_block]
+    type = ComputeFiniteStrainElasticStress
+    # store_stress_old = true
+    block = 0
+  [../]
+  [./density]
+    type = GenericConstantMaterial
+    block = 0
+    prop_names = density
+    prop_values = 150
   [../]
 []
 
 [Executioner]
   type = Transient
-  solve_type = PJFNK
+  solve_type = NEWTON
   nl_rel_tol = 1e-8
   nl_abs_tol = 1e-8
   dtmin = 1e-4
   timestep_tolerance = 1e-6
-  start_time = -0.05
+  start_time = -0.005
   end_time = 8
-  dt = 0.01
+  dt = 0.005
   [./TimeIntegrator]
-    type = NewmarkBeta
-    beta = 0.25
-    gamma = 0.5
+    type = CentralDifference
+    solve_type = consistent
   [../]
 []
 

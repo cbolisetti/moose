@@ -91,19 +91,19 @@
   [./inertia_x]
     type = InertialForce
     variable = disp_x
-    velocity = vel_x
-    acceleration = accel_x
-    beta = 0.25
-    gamma = 0.5
+    # velocity = vel_x
+    # acceleration = accel_x
+    # beta = 0.25
+    # gamma = 0.5
     # eta = 7.854
   [../]
   [./inertia_y]
     type = InertialForce
     variable = disp_y
-    velocity = vel_y
-    acceleration = accel_y
-    beta = 0.25
-    gamma = 0.5
+    # velocity = vel_y
+    # acceleration = accel_y
+    # beta = 0.25
+    # gamma = 0.5
     # eta = 7.854
   [../]
   # [./inertia_z]
@@ -253,64 +253,95 @@
   [./x_bot]
     type = PresetBC
     variable = disp_x
-    boundary = 0
+    boundary = bottom
     value = 0.0
   [../]
   [./y_bot]
     type = PresetBC
     variable = disp_y
-    boundary = 0
+    boundary = bottom
     value = 0.0
   [../]
-  [./Periodic]
-    [./x_dir]
-      variable = 'disp_x disp_y'
-      primary = '4'
-      secondary = '2'
-      translation = '1.0 0.0'
-    [../]
-    [./y_dir]
-      variable = 'disp_x disp_y disp_z'
-      primary = '1'
-      secondary = '3'
-      translation = '0.0 1.0 0.0'
-    [../]
-  [../]
-  [./top_x]
-    type = PresetDisplacement
-    boundary = 5
+  # [./Periodic]
+  #   [./x_dir]
+  #     variable = 'disp_x disp_y'
+  #     primary = '4'
+  #     secondary = '2'
+  #     translation = '1.0 0.0'
+  #   [../]
+  #   [./y_dir]
+  #     variable = 'disp_x disp_y disp_z'
+  #     primary = '1'
+  #     secondary = '3'
+  #     translation = '0.0 1.0 0.0'
+  #   [../]
+  # [../]
+  # [./top_x]
+  #   type = PresetDisplacement
+  #   boundary = 5
+  #   variable = disp_x
+  #   beta = 0.25
+  #   velocity = vel_x
+  #   acceleration = accel_x
+  #   function = top_disp
+  # [../]
+[]
+
+[NodalKernels]
+  # [./x_nodal_mass]
+  #   type = NodalTranslationalInertia
+  #   block = '0'
+  #   variable = disp_x
+  #   boundary = right
+  #   mass = 1e3
+  #   central_difference = true
+  # [../]
+  [./force_x]
+    type = UserForcingFunctionNodalKernel
     variable = disp_x
-    beta = 0.25
-    velocity = vel_x
-    acceleration = accel_x
-    function = top_disp
+    boundary = top
+    function = force_x
   [../]
 []
 
 [Functions]
-  [./top_disp]
+  # [./top_disp]
+  #   type = PiecewiseLinear
+  #   data_file = Displacement2.csv
+  #   format = columns
+  # [../]
+  [./force_x]
     type = PiecewiseLinear
-    data_file = Displacement2.csv
-    format = columns
+    x = '0.0 1.0 2.0 3.0 4.0' # time
+    y = '0.0 1.0 0.0 -1.0 0.0'  # force
+    # x = '0.0 0.1 0.11 3.0 4.0' # time
+    # y = '0.0 1.0 0 0 0' # force
+    scale_factor = 1e3
   [../]
 []
 
 [Materials]
-  [./I_Soil]
-    [./soil_1]
-      soil_type = 'darendeli'
-      layer_variable = layer_id
-      layer_ids = '0'
-      over_consolidation_ratio = '1'
-      plasticity_index = '0'
-      initial_shear_modulus = '20000'
-      number_of_points = 10
-      poissons_ratio = '0.3'
-      block = 0
-      initial_soil_stress = '-4.204286 0 0  0 -4.204286 0  0 0 -9.810'
-      density = '2'
-      p_ref = '6.07286'
-    [../]
+  [./elasticity_tensor_block]
+    type = ComputeIsotropicElasticityTensor
+    youngs_modulus = 1e6
+    poissons_ratio = 0.25
+    block = 0
+  [../]
+  [./strain_block]
+    type = ComputeIncrementalSmallStrain
+    block = 0
+    displacements = 'disp_x disp_y'
+  [../]
+  [./stress_block]
+    type = ComputeFiniteStrainElasticStress
+    # store_stress_old = true
+    block = 0
+  [../]
+  [./density]
+    type = GenericConstantMaterial
+    block = 0
+    prop_names = density
+    prop_values = 1e4
   [../]
 []
 
@@ -323,132 +354,133 @@
 
 [Executioner]
   type = Transient
-  solve_type = PJFNK
+  solve_type = NEWTON
   nl_abs_tol = 1e-11
   nl_rel_tol = 1e-11
-  start_time = 0
+  start_time = -0.01
   end_time = 8
-  dt = 0.01
+  dt = 0.005
   timestep_tolerance = 1e-6
-  petsc_options = '-snes_ksp_ew'
-  petsc_options_iname = '-ksp_gmres_restart -pc_type -pc_hypre_type -pc_hypre_boomeramg_max_iter'
-  petsc_options_value = '201                hypre    boomeramg      4'
-  line_search = 'none'
+  [./TimeIntegrator]
+    type = NewmarkBeta
+    beta = 0.25
+    gamma = 0.5
+  [../]
 []
 
 [Postprocessors]
   [./_dt]
     type = TimestepSize
   [../]
-  [./disp_6x]
+  [./disp_2x]
     type = NodalVariableValue
-    nodeid = 6
+    nodeid = 2
     variable = disp_x
   [../]
-  [./disp_6y]
+  [./disp_2y]
     type = NodalVariableValue
-    nodeid = 6
+    nodeid = 2
     variable = disp_y
   [../]
-  [./disp_6z]
-    type = NodalVariableValue
-    nodeid = 6
-    variable = disp_z
-  [../]
-  [./vel_6x]
-    type = NodalVariableValue
-    nodeid = 6
-    variable = vel_x
-  [../]
-  [./vel_6y]
-    type = NodalVariableValue
-    nodeid = 6
-    variable = vel_y
-  [../]
-  [./vel_6z]
-    type = NodalVariableValue
-    nodeid = 6
-    variable = vel_z
-  [../]
-  [./accel_6x]
-    type = NodalVariableValue
-    nodeid = 6
-    variable = accel_x
-  [../]
-  [./accel_6y]
-    type = NodalVariableValue
-    nodeid = 6
-    variable = accel_y
-  [../]
-  [./accel_6z]
-    type = NodalVariableValue
-    nodeid = 6
-    variable = accel_z
-  [../]
-  [./stress_xy_el]
-    type = ElementalVariableValue
-    variable = stress_xy
-    elementid = 0
-  [../]
-  [./stress_yz_el]
-    type = ElementalVariableValue
-    variable = stress_yz
-    elementid = 0
-  [../]
-  [./stress_zx_el]
-    type = ElementalVariableValue
-    variable = stress_zx
-    elementid = 0
-  [../]
-  [./strain_xy_el]
-    type = ElementalVariableValue
-    variable = strain_xy
-    elementid = 0
-  [../]
-  [./strain_yz_el]
-    type = ElementalVariableValue
-    variable = strain_yz
-    elementid = 0
-  [../]
-  [./strain_zx_el]
-    type = ElementalVariableValue
-    variable = strain_zx
-    elementid = 0
-  [../]
-  [./stress_xx_el]
-    type = ElementalVariableValue
-    variable = stress_xx
-    elementid = 0
-  [../]
-  [./stress_yy_el]
-    type = ElementalVariableValue
-    variable = stress_yy
-    elementid = 0
-  [../]
-  [./stress_zz_el]
-    type = ElementalVariableValue
-    variable = stress_zz
-    elementid = 0
-  [../]
-  [./strain_xx_el]
-    type = ElementalVariableValue
-    variable = strain_xx
-    elementid = 0
-  [../]
-  [./strain_yy_el]
-    type = ElementalVariableValue
-    variable = strain_yy
-    elementid = 0
-  [../]
-  [./strain_zz_el]
-    type = ElementalVariableValue
-    variable = strain_zz
-    elementid = 0
-  [../]
+  # [./disp_6z]
+  #   type = NodalVariableValue
+  #   nodeid = 6
+  #   variable = disp_z
+  # [../]
+  # [./vel_6x]
+  #   type = NodalVariableValue
+  #   nodeid = 6
+  #   variable = vel_x
+  # [../]
+  # [./vel_6y]
+  #   type = NodalVariableValue
+  #   nodeid = 6
+  #   variable = vel_y
+  # [../]
+  # [./vel_6z]
+  #   type = NodalVariableValue
+  #   nodeid = 6
+  #   variable = vel_z
+  # [../]
+  # [./accel_6x]
+  #   type = NodalVariableValue
+  #   nodeid = 6
+  #   variable = accel_x
+  # [../]
+  # [./accel_6y]
+  #   type = NodalVariableValue
+  #   nodeid = 6
+  #   variable = accel_y
+  # [../]
+  # [./accel_6z]
+  #   type = NodalVariableValue
+  #   nodeid = 6
+  #   variable = accel_z
+  # [../]
+  # [./stress_xy_el]
+  #   type = ElementalVariableValue
+  #   variable = stress_xy
+  #   elementid = 0
+  # [../]
+  # [./stress_yz_el]
+  #   type = ElementalVariableValue
+  #   variable = stress_yz
+  #   elementid = 0
+  # [../]
+  # [./stress_zx_el]
+  #   type = ElementalVariableValue
+  #   variable = stress_zx
+  #   elementid = 0
+  # [../]
+  # [./strain_xy_el]
+  #   type = ElementalVariableValue
+  #   variable = strain_xy
+  #   elementid = 0
+  # [../]
+  # [./strain_yz_el]
+  #   type = ElementalVariableValue
+  #   variable = strain_yz
+  #   elementid = 0
+  # [../]
+  # [./strain_zx_el]
+  #   type = ElementalVariableValue
+  #   variable = strain_zx
+  #   elementid = 0
+  # [../]
+  # [./stress_xx_el]
+  #   type = ElementalVariableValue
+  #   variable = stress_xx
+  #   elementid = 0
+  # [../]
+  # [./stress_yy_el]
+  #   type = ElementalVariableValue
+  #   variable = stress_yy
+  #   elementid = 0
+  # [../]
+  # [./stress_zz_el]
+  #   type = ElementalVariableValue
+  #   variable = stress_zz
+  #   elementid = 0
+  # [../]
+  # [./strain_xx_el]
+  #   type = ElementalVariableValue
+  #   variable = strain_xx
+  #   elementid = 0
+  # [../]
+  # [./strain_yy_el]
+  #   type = ElementalVariableValue
+  #   variable = strain_yy
+  #   elementid = 0
+  # [../]
+  # [./strain_zz_el]
+  #   type = ElementalVariableValue
+  #   variable = strain_zz
+  #   elementid = 0
+  # [../]
 []
 
 [Outputs]
-  exodus = true
+  exodus = false
   csv = true
   perf_graph = false
 []

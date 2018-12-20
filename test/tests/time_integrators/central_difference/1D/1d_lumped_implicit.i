@@ -167,33 +167,30 @@
     variable = disp_x
     boundary = right
     mass = 1e3
-    central_difference = true
     # velocity = vel_x
     # acceleration = accel_x
     # beta = 0.25
     # gamma = 0.5
     # eta = 0.0162 # Rayleigh damping
   [../]
-  [./force_x]
-    type = UserForcingFunctionNodalKernel
-    variable = disp_x
-    boundary = right
-    function = force_x
-  [../]
+  # [./force_x]
+  #   type = UserForcingFunctionNodalKernel
+  #   variable = disp_x
+  #   boundary = right
+  #   function = force_x
+  # [../]
 []
 
 [Functions]
-  # [./x_right]
-  #   type = PiecewiseLinear
-  #   x = '0   1'
-  #   y = '0 0.1'
-  # [../]
+  [./x_right]
+    type = PiecewiseLinear
+    x = '0   1'
+    y = '0 0.1'
+  [../]
   [./force_x]
     type = PiecewiseLinear
     x = '0.0 1.0 2.0 3.0 4.0' # time
     y = '0.0 1.0 0.0 -1.0 0.0'  # force
-    # x = '0.0 0.1 0.11 3.0 4.0' # time
-    # y = '0.0 1.0 0 0 0' # force
     scale_factor = 1e3
   [../]
 []
@@ -205,13 +202,13 @@
     boundary = left
     value = 0.0
   [../]
-  # [./fixx2]
-  #   type = DirichletBC
-  #   variable = disp_x
-  #   boundary = right
-  #   # function = x_right
-  #   value = 0.0
-  # [../]
+  [./fixx2]
+    type = FunctionDirichletBC
+    variable = disp_x
+    boundary = right
+    function = x_right
+    # value = 0.0
+  [../]
   # [./fixy1]
   #   type = DirichletBC
   #   variable = disp_y
@@ -245,26 +242,22 @@
     youngs_modulus = 1e6
     displacements = 'disp_x'
   [../]
-  # [./density]
-  #   type = GenericConstantMaterial
-  #   prop_names = 'density'
-  #   prop_values = '1000'
-  # [../]
 []
 
 [Executioner]
   type = Transient
-  # solve_type =
-  # nl_rel_tol = 1e-8
-  # nl_abs_tol = 1e-8
-  # dtmin = 1e-4
-  # timestep_tolerance = 1e-6
-  start_time = -0.010
-  end_time = 8.0
-  dt = 0.01
+  solve_type = PJFNK
+  nl_rel_tol = 1e-8
+  nl_abs_tol = 1e-8
+  dtmin = 1e-4
+  timestep_tolerance = 1e-6
+  start_time = -0.05
+  end_time = 8
+  dt = 0.005
   [./TimeIntegrator]
-    type = CentralDifference
-    solve_type = lumped
+    type = NewmarkBeta
+    beta = 0.25
+    gamma = 0.5
   [../]
 []
 
@@ -286,14 +279,14 @@
   # [../]
 []
 
-# [Controls]
-#   [./release_x_right]
-#     type = TimePeriod
-#     disable_objects = '*::fixx2'
-#     start_time = '1'
-#     end_time = '100'
-#   [../]
-# []
+[Controls]
+  [./release_x_right]
+    type = TimePeriod
+    disable_objects = '*::fixx2'
+    start_time = '1'
+    end_time = '100'
+  [../]
+[]
 
 [Outputs]
   exodus = false

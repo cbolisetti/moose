@@ -38,6 +38,7 @@ validParams<InertialForce>()
                         "by HHT time integration scheme");
   params.addParam<MaterialPropertyName>(
       "density", "density", "Name of Material Property that provides the density");
+  params.addParam<bool>("central_difference", false, "Switch for Central Difference time integration.");
   return params;
 }
 
@@ -59,6 +60,8 @@ InertialForce::InertialForce(const InputParameters & parameters)
   else if (!isParamValid("beta") && !isParamValid("gamma") && !isParamValid("velocity") &&
            !isParamValid("acceleration"))
   {
+    _u_older =  &(_var.dofValuesOlder());
+    _u_old =  &(_var.dofValuesOld());
     _u_dot = &(_var.uDot());
     _u_dotdot = &(_var.uDotDot());
     _u_dot_old = &(_var.uDotOld());
@@ -84,10 +87,18 @@ InertialForce::computeQpResidual()
     return _test[_i][_qp] * _density[_qp] *
            (accel + vel * _eta[_qp] * (1 + _alpha) - _alpha * _eta[_qp] * (*_vel_old)[_qp]);
   }
+  else if (getParam<bool>("central_difference"))
+  {
+    std::cout << "***** Executing Central Difference Inertial Force!\n";
+    return _test[_i][_qp] * _density[_qp] * ((*_u_older)[_qp] - (*_u_old)[_qp]) / (_dt * _dt);
+  }
   else
+  {
+    // std::cout << "WHAAAAAAAAAAAA..........\n";
     return _test[_i][_qp] * _density[_qp] *
            ((*_u_dotdot)[_qp] + (*_u_dot)[_qp] * _eta[_qp] * (1.0 + _alpha) -
             _alpha * _eta[_qp] * (*_u_dot_old)[_qp]);
+  }
 }
 
 Real
@@ -100,7 +111,11 @@ InertialForce::computeQpJacobian()
            _eta[_qp] * (1 + _alpha) * _test[_i][_qp] * _density[_qp] * _gamma / _beta / _dt *
                _phi[_j][_qp];
   else
-    return _test[_i][_qp] * _density[_qp] * (*_du_dotdot_du)[_qp] * _phi[_j][_qp] +
+    {
+      // std::cout << "du_dotdot_du is ************** \n" << (*_du_dotdot_du)[_qp] << std::endl;
+      // std::cout << "INERTIAL FORCE JACOBIAN IS:\n" << _test[_i][_qp] * _density[_qp] * (*_du_dotdot_du)[_qp] * _phi[_j][_qp] << std::endl;
+      return _test[_i][_qp] * _density[_qp] * (*_du_dotdot_du)[_qp] * _phi[_j][_qp] +
            _eta[_qp] * (1 + _alpha) * _test[_i][_qp] * _density[_qp] * (*_du_dot_du)[_qp] *
                _phi[_j][_qp];
+    }
 }

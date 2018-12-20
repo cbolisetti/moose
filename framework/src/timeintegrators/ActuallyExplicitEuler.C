@@ -144,7 +144,7 @@ ActuallyExplicitEuler::solve()
   // The residual is on the RHS
   _explicit_residual *= -1.;
 
-  std::cout << "EXPLICIT RESIDUAL IS:\n" << _explicit_residual << std::endl;
+  // std::cout << "EXPLICIT RESIDUAL IS:\n" << _explicit_residual << std::endl;
 
   // Compute the mass matrix
   _fe_problem.computeJacobianTag(*libmesh_system.current_local_solution, mass_matrix, _Ke_time_tag);
@@ -158,6 +158,8 @@ ActuallyExplicitEuler::solve()
   {
     case CONSISTENT:
     {
+      std::cout << "CONSISTENT MASS MATRIX IS:\n" << mass_matrix << std::endl;
+
       const auto num_its_and_final_tol = _linear_solver->solve(
           mass_matrix,
           _explicit_euler_update,
@@ -177,7 +179,7 @@ ActuallyExplicitEuler::solve()
       // Note: This is actually how PETSc does it
       // It's not "perfectly optimal" - but it will be fast (and universal)
       mass_matrix.vector_mult(_mass_matrix_diag, *_ones);
-      std::cout << "LUMPED MASS MATRIX IS:\n" << _mass_matrix_diag << std::endl;
+      // std::cout << "LUMPED MASS MATRIX IS:\n" << _mass_matrix_diag << std::endl;
 
 
       // "Invert" the diagonal mass matrix
@@ -216,9 +218,9 @@ ActuallyExplicitEuler::solve()
       mooseError("Unknown solve_type in ActuallyExplicitEuler ");
   }
 
-  // *libmesh_system.solution = nonlinear_system.solutionOld();
-  *libmesh_system.solution = _explicit_euler_update;
-  std::cout << "EXPLICIT EULER UPDATE: \n" << _explicit_euler_update << std::endl;
+  *libmesh_system.solution = nonlinear_system.solutionOld();
+  *libmesh_system.solution += _explicit_euler_update;
+  // std::cout << "EXPLICIT EULER UPDATE: \n" << _explicit_euler_update << std::endl;
 
   // Enforce contraints on the solution
   DofMap & dof_map = libmesh_system.get_dof_map();

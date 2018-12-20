@@ -32,6 +32,7 @@ protected:
 private:
   const MaterialProperty<Real> & _density;
   const VariableValue * _u_old;
+  const VariableValue * _u_older;
   const VariableValue * _vel_old;
   const VariableValue * _accel_old;
   const Real _beta;
