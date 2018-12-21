@@ -181,6 +181,7 @@
   #   variable = disp_x
   #   boundary = right
   #   mass = 1e3
+  #   central_difference = true
   #   # velocity = vel_x
   #   # acceleration = accel_x
   #   # beta = 0.25
@@ -260,12 +261,19 @@
     type = ComputeIncrementalSmallStrain
     block = 0
     displacements = 'disp_x'
+    central_difference = true
   [../]
   [./stress_block]
     type = ComputeFiniteStrainElasticStress
     # store_stress_old = true
     block = 0
   [../]
+  # [./linelast]
+  #   type = LinearElasticTruss
+  #   block = '0'
+  #   youngs_modulus = 1e6
+  #   displacements = 'disp_x'
+  # [../]
   [./density]
     type = GenericConstantMaterial
     block = 0
@@ -276,17 +284,17 @@
 
 [Executioner]
   type = Transient
-  solve_type = NEWTON
-  nl_rel_tol = 1e-8
-  nl_abs_tol = 1e-8
-  dtmin = 1e-4
-  timestep_tolerance = 1e-6
-  start_time = -0.005
+  # solve_type = NEWTON
+  # nl_rel_tol = 1e-8
+  # nl_abs_tol = 1e-8
+  # dtmin = 1e-4
+  # timestep_tolerance = 1e-6
+  start_time = -0.001
   end_time = 8
   dt = 0.005
   [./TimeIntegrator]
     type = CentralDifference
-    solve_type = consistent
+    # solve_type = lumped
   [../]
 []
 

@@ -1,4 +1,4 @@
-# Test for central difference integration for a 1D element
+# Test for central difference integration for a single truss element
 
 [Mesh]
   type = GeneratedMesh
@@ -44,11 +44,11 @@
 #     order = CONSTANT
 #     family = MONOMIAL
 #   [../]
-#   [./area]
-#     order = CONSTANT
-#     family = MONOMIAL
-# #    initial_condition = 1.0
-#   [../]
+  [./area]
+    order = CONSTANT
+    family = MONOMIAL
+#    initial_condition = 1.0
+  [../]
 #   [./react_x]
 #     order = FIRST
 #     family = LAGRANGE
@@ -76,13 +76,13 @@
   #   property = e_over_l
   #   variable = e_over_l
   # [../]
-  # [./area]
-  #   type = ConstantAux
-  #   block = '0'
-  #   variable = area
-  #   value = 1.0
-  #   execute_on = 'initial timestep_begin'
-  # [../]
+  [./area]
+    type = ConstantAux
+    block = '0'
+    variable = area
+    value = 1.0
+    execute_on = 'initial timestep_begin'
+  [../]
   # [./accel_x]
   #   type = NewmarkAccelAux
   #   variable = accel_x
@@ -131,29 +131,15 @@
 []
 
 [Kernels]
-  [./DynamicTensorMechanics]
+  [./solid_x]
+    type = StressDivergenceTensorsTruss
+    block = '0'
     displacements = 'disp_x'
-    # zeta = 0.00006366
-  [../]
-  [./inertia_x]
-    type = InertialForce
+    component = 0
     variable = disp_x
-    central_difference = true
-    # velocity = vel_x
-    # acceleration = accel_x
-    # beta = 0.25
-    # gamma = 0.5
-    # eta = 7.854
+    area = area
+    # save_in = react_x
   [../]
-  # [./solid_x]
-  #   type = StressDivergenceTensorsTruss
-  #   block = '0'
-  #   displacements = 'disp_x'
-  #   component = 0
-  #   variable = disp_x
-  #   area = area
-  #   # save_in = react_x
-  # [../]
   # [./solid_y]
   #   type = StressDivergenceTensorsTruss
   #   block = '0'
@@ -175,19 +161,19 @@
 []
 
 [NodalKernels]
-  # [./x_nodal_mass]
-  #   type = NodalTranslationalInertia
-  #   block = '0'
-  #   variable = disp_x
-  #   boundary = right
-  #   mass = 1e3
-  #   central_difference = true
-  #   # velocity = vel_x
-  #   # acceleration = accel_x
-  #   # beta = 0.25
-  #   # gamma = 0.5
-  #   # eta = 0.0162 # Rayleigh damping
-  # [../]
+  [./x_nodal_mass]
+    type = NodalTranslationalInertia
+    block = '0'
+    variable = disp_x
+    boundary = right
+    mass = 1e3
+    central_difference = true
+    # velocity = vel_x
+    # acceleration = accel_x
+    # beta = 0.25
+    # gamma = 0.5
+    # eta = 0.0162 # Rayleigh damping
+  [../]
   [./force_x]
     type = UserForcingFunctionNodalKernel
     variable = disp_x
@@ -197,15 +183,17 @@
 []
 
 [Functions]
-  # [./x_right]
-  #   type = PiecewiseLinear
-  #   x = '0   1'
-  #   y = '0 0.1'
-  # [../]
+  [./x_right]
+    type = PiecewiseLinear
+    x = '0   1'
+    y = '0 0.1'
+  [../]
   [./force_x]
     type = PiecewiseLinear
     x = '0.0 1.0 2.0 3.0 4.0' # time
     y = '0.0 1.0 0.0 -1.0 0.0'  # force
+    # x = '0.0 0.1 0.11 3.0 4.0' # time
+    # y = '0.0 1.0 0 0 0' # force
     scale_factor = 1e3
   [../]
 []
@@ -251,46 +239,28 @@
 []
 
 [Materials]
-  [./elasticity_tensor_block]
-    type = ComputeIsotropicElasticityTensor
+  [./linelast]
+    type = LinearElasticTruss
+    block = '0'
     youngs_modulus = 1e6
-    poissons_ratio = 0.25
-    block = 0
-  [../]
-  [./strain_block]
-    type = ComputeIncrementalSmallStrain
-    block = 0
     displacements = 'disp_x'
-    central_difference = true
   [../]
-  [./stress_block]
-    type = ComputeFiniteStrainElasticStress
-    # store_stress_old = true
-    block = 0
-  [../]
-  # [./linelast]
-  #   type = LinearElasticTruss
-  #   block = '0'
-  #   youngs_modulus = 1e6
-  #   displacements = 'disp_x'
+  # [./density]
+  #   type = GenericConstantMaterial
+  #   prop_names = 'density'
+  #   prop_values = '1000'
   # [../]
-  [./density]
-    type = GenericConstantMaterial
-    block = 0
-    prop_names = density
-    prop_values = 150
-  [../]
 []
 
 [Executioner]
   type = Transient
-  # solve_type = NEWTON
+  # solve_type =
   # nl_rel_tol = 1e-8
   # nl_abs_tol = 1e-8
   # dtmin = 1e-4
   # timestep_tolerance = 1e-6
-  start_time = -0.001
-  end_time = 8
+  start_time = -0.010
+  end_time = 8.0
   dt = 0.005
   [./TimeIntegrator]
     type = CentralDifference

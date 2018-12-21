@@ -174,11 +174,12 @@ NodalTranslationalInertia::computeQpResidual()
 
     else if (getParam<bool>("central_difference"))
       {
-        std::cout << "MASS RESIDUAL FROM NODAL TRANSLATIONAL INERTIA:\n" << mass * ((*_u_older)[_qp] - (*_u_old)[_qp]) / (_dt * _dt) << std::endl;
-        std::cout << "SOLUTION\n" << _u[_qp] << std::endl;
-        std::cout << "SOLUTION_OLD\n" << (*_u_old)[_qp] << std::endl;
-        std::cout << "SOLUTION_OLDER\n" << (*_u_older)[_qp] << std::endl;
-        return mass * ((*_u_older)[_qp] - (*_u_old)[_qp]) / (_dt * _dt);
+        // std::cout << "MASS RESIDUAL FROM NODAL TRANSLATIONAL INERTIA:\n" << mass * ((*_u_older)[_qp] - (*_u_old)[_qp]) / (_dt * _dt) << std::endl;
+        // std::cout << "SOLUTION\n" << _u[_qp] << std::endl;
+        // std::cout << "SOLUTION_OLD\n" << (*_u_old)[_qp] << std::endl;
+        // std::cout << "SOLUTION_OLDER\n" << (*_u_older)[_qp] << std::endl;
+        // return mass * ((*_u_older)[_qp] - (*_u_old)[_qp]) / (_dt * _dt);
+        return 0.0;
       }
 
     else

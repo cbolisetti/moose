@@ -76,7 +76,9 @@ ActuallyExplicitEuler::ActuallyExplicitEuler(const InputParameters & parameters)
     _solve_type(getParam<MooseEnum>("solve_type")),
     _explicit_residual(_nl.addVector("explicit_residual", false, PARALLEL)),
     _explicit_euler_update(_nl.addVector("explicit_euler_update", true, PARALLEL)),
-    _mass_matrix_diag(_nl.addVector("mass_matrix_diag", false, PARALLEL))
+    _mass_matrix_diag(_nl.addVector("mass_matrix_diag", false, PARALLEL)),
+    _mass_residual(_nl.addVector("mass_residual", false, PARALLEL)),
+    _test_vec(_nl.addVector("test_vec", false, PARALLEL))
 {
   _Ke_time_tag = _fe_problem.getMatrixTagID("TIME");
 
@@ -152,13 +154,19 @@ ActuallyExplicitEuler::solve()
   // Still testing whether leaving the old update is a good idea or not
   // _explicit_euler_update = 0;
 
+  _test_vec = _solution_older;
+  _test_vec -= _solution_old;
+
   auto converged = false;
 
   switch (_solve_type)
   {
     case CONSISTENT:
     {
-      std::cout << "CONSISTENT MASS MATRIX IS:\n" << mass_matrix << std::endl;
+      // std::cout << "CONSISTENT MASS MATRIX IS:\n" << mass_matrix << std::endl;
+
+      mass_matrix.vector_mult(_mass_residual, _test_vec); // Calculating mass residual here instead of inertia kernels
+      _explicit_residual -= _mass_residual;  // Adding mass residual here directly (make inertia kernels return zero for residual)
 
       const auto num_its_and_final_tol = _linear_solver->solve(
           mass_matrix,
@@ -181,6 +189,8 @@ ActuallyExplicitEuler::solve()
       mass_matrix.vector_mult(_mass_matrix_diag, *_ones);
       // std::cout << "LUMPED MASS MATRIX IS:\n" << _mass_matrix_diag << std::endl;
 
+      _mass_residual.pointwise_mult(_mass_matrix_diag, _test_vec); // Calculating mass residual here instead of inertia kernels
+      _explicit_residual -= _mass_residual;  // Adding mass residual here directly (make inertia kernels return zero for residual)
 
       // "Invert" the diagonal mass matrix
       _mass_matrix_diag.reciprocal();

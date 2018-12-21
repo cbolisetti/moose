@@ -1,22 +1,27 @@
-# One element test to test the central difference time integrator.
+# One element test to test the central difference time integrator in 3D.
 # The back surface of the element (y=0) is fixed and the front surface (y=1)
 # is moved by applying a cyclic force.
 
 [Mesh]
   type = GeneratedMesh # Can generate simple lines, rectangles and rectangular prisms
-  dim = 2 # Dimension of the mesh
+  dim = 3 # Dimension of the mesh
   nx = 1 # Number of elements in the x direction
   ny = 1 # Number of elements in the y direction
+  nz = 1 # Number of elements in the z direction
   xmin = 0.0
   xmax = 1
   ymin = 0.0
   ymax = 1
+  zmin = 0.0
+  zmax = 1
 []
 
 [Variables]
   [./disp_x]
   [../]
   [./disp_y]
+  [../]
+  [./disp_z]
   [../]
 []
 
@@ -85,7 +90,7 @@
 
 [Kernels]
   [./DynamicTensorMechanics]
-    displacements = 'disp_x disp_y'
+    displacements = 'disp_x disp_y disp_z'
     # zeta = 0.00006366
   [../]
   [./inertia_x]
@@ -93,7 +98,6 @@
     variable = disp_x
     # velocity = vel_x
     # acceleration = accel_x
-    central_difference = true
     # beta = 0.25
     # gamma = 0.5
     # eta = 7.854
@@ -103,20 +107,19 @@
     variable = disp_y
     # velocity = vel_y
     # acceleration = accel_y
-    central_difference = true
     # beta = 0.25
     # gamma = 0.5
     # eta = 7.854
   [../]
-  # [./inertia_z]
-  #   type = InertialForce
-  #   variable = disp_z
-  #   velocity = vel_z
-  #   acceleration = accel_z
-  #   beta = 0.25
-  #   gamma = 0.5
-  #   eta = 7.854
-  # [../]
+  [./inertia_z]
+    type = InertialForce
+    variable = disp_z
+    # velocity = vel_z
+    # acceleration = accel_z
+    # beta = 0.25
+    # gamma = 0.5
+    # eta = 7.854
+  [../]
 []
 
 # [AuxKernels]
@@ -264,6 +267,12 @@
     boundary = bottom
     value = 0.0
   [../]
+  [./z_bot]
+    type = PresetBC
+    variable = disp_z
+    boundary = bottom
+    value = 0.0
+  [../]
   # [./Periodic]
   #   [./x_dir]
   #     variable = 'disp_x disp_y'
@@ -302,7 +311,13 @@
     type = UserForcingFunctionNodalKernel
     variable = disp_x
     boundary = top
-    function = force_x
+    function = force
+  [../]
+  [./force_y]
+    type = UserForcingFunctionNodalKernel
+    variable = disp_y
+    boundary = top
+    function = force
   [../]
 []
 
@@ -312,7 +327,7 @@
   #   data_file = Displacement2.csv
   #   format = columns
   # [../]
-  [./force_x]
+  [./force]
     type = PiecewiseLinear
     x = '0.0 1.0 2.0 3.0 4.0' # time
     y = '0.0 1.0 0.0 -1.0 0.0'  # force
@@ -332,8 +347,7 @@
   [./strain_block]
     type = ComputeIncrementalSmallStrain
     block = 0
-    displacements = 'disp_x disp_y'
-    central_difference = true
+    displacements = 'disp_x disp_y disp_z'
   [../]
   [./stress_block]
     type = ComputeFiniteStrainElasticStress
@@ -357,15 +371,17 @@
 
 [Executioner]
   type = Transient
-  # solve_type = NEWTON
-  # nl_abs_tol = 1e-11
-  # nl_rel_tol = 1e-11
-  # timestep_tolerance = 1e-6
+  solve_type = NEWTON
+  nl_abs_tol = 1e-11
+  nl_rel_tol = 1e-11
+  timestep_tolerance = 1e-6
   start_time = -0.01
   end_time = 8
   dt = 0.005
   [./TimeIntegrator]
-    type = CentralDifference
+    type = NewmarkBeta
+    beta = 0.25
+    gamma = 0.5
   [../]
 []
 
@@ -373,15 +389,20 @@
   [./_dt]
     type = TimestepSize
   [../]
-  [./disp_2x]
+  [./disp_6x]
     type = NodalVariableValue
-    nodeid = 2
+    nodeid = 6
     variable = disp_x
   [../]
-  [./disp_2y]
+  [./disp_6y]
     type = NodalVariableValue
-    nodeid = 2
+    nodeid = 6
     variable = disp_y
+  [../]
+  [./disp_6z]
+    type = NodalVariableValue
+    nodeid = 6
+    variable = disp_z
   [../]
   # [./disp_6z]
   #   type = NodalVariableValue

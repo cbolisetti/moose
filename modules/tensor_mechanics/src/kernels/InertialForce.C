@@ -60,8 +60,8 @@ InertialForce::InertialForce(const InputParameters & parameters)
   else if (!isParamValid("beta") && !isParamValid("gamma") && !isParamValid("velocity") &&
            !isParamValid("acceleration"))
   {
-    _u_older =  &(_var.dofValuesOlder());
-    _u_old =  &(_var.dofValuesOld());
+    _u_older = &valueOlder();
+    _u_old = &valueOld();
     _u_dot = &(_var.uDot());
     _u_dotdot = &(_var.uDotDot());
     _u_dot_old = &(_var.uDotOld());
@@ -89,8 +89,9 @@ InertialForce::computeQpResidual()
   }
   else if (getParam<bool>("central_difference"))
   {
-    std::cout << "***** Executing Central Difference Inertial Force!\n";
-    return _test[_i][_qp] * _density[_qp] * ((*_u_older)[_qp] - (*_u_old)[_qp]) / (_dt * _dt);
+    // std::cout << "***** Executing Central Difference Inertial Force!\n";
+    // return _test[_i][_qp] * _density[_qp] * ((*_u_older)[_qp] - (*_u_old)[_qp]) / (_dt * _dt);
+    return 0.0;
   }
   else
   {

@@ -31,6 +31,7 @@ validParams<ComputeStrainBase>()
                                         "Optional material property holding a global strain "
                                         "tensor applied to the mesh as a whole");
   params.suppressParameter<bool>("use_displaced_mesh");
+  params.addParam<bool>("central_difference", false, "Switch for Central Difference integration.");
   return params;
 }
 
@@ -70,8 +71,16 @@ ComputeStrainBase::initialSetup()
   // fetch coupled variables and gradients (as stateful properties if necessary)
   for (unsigned int i = 0; i < _ndisp; ++i)
   {
-    _disp[i] = &coupledValue("displacements", i);
-    _grad_disp[i] = &coupledGradient("displacements", i);
+    if (getParam<bool>("central_difference"))
+    {
+      _disp[i] = &coupledValueOld("displacements", i);
+      _grad_disp[i] = &coupledGradientOld("displacements", i);
+    }
+    else
+    {
+      _disp[i] = &coupledValue("displacements", i);
+      _grad_disp[i] = &coupledGradient("displacements", i);
+    }
   }
 
   // set unused dimensions to zero

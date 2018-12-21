@@ -43,7 +43,7 @@ TimeKernel::computeResidual()
     for (_qp = 0; _qp < _qrule->n_points(); _qp++)
       _local_re(_i) += _JxW[_qp] * _coord[_qp] * computeQpResidual();
 
-  std::cout << "RESIDUAL FROM TIME KERNEL:\n" << _local_re << std::endl;
+  // std::cout << "RESIDUAL FROM TIME KERNEL:\n" << _local_re << std::endl;
 
   accumulateTaggedLocalResidual();
 
