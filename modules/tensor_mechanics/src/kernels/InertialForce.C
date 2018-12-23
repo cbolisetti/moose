@@ -90,12 +90,11 @@ InertialForce::computeQpResidual()
   else if (getParam<bool>("central_difference"))
   {
     // std::cout << "***** Executing Central Difference Inertial Force!\n";
-    // return _test[_i][_qp] * _density[_qp] * ((*_u_older)[_qp] - (*_u_old)[_qp]) / (_dt * _dt);
+    return _test[_i][_qp] * _density[_qp] * ((*_u_older)[_qp] - (*_u_old)[_qp]) / (_dt * _dt);
     return 0.0;
   }
   else
   {
-    // std::cout << "WHAAAAAAAAAAAA..........\n";
     return _test[_i][_qp] * _density[_qp] *
            ((*_u_dotdot)[_qp] + (*_u_dot)[_qp] * _eta[_qp] * (1.0 + _alpha) -
             _alpha * _eta[_qp] * (*_u_dot_old)[_qp]);

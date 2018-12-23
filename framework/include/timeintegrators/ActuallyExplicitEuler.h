@@ -66,10 +66,10 @@ protected:
   NumericVector<Real> & _mass_matrix_diag;
 
   /// Mass residual
-  NumericVector<Real> & _mass_residual;
+  // NumericVector<Real> & _mass_residual;
 
   /// Mass residual
-  NumericVector<Real> & _test_vec;
+  // NumericVector<Real> & _test_vec;
 
   /// Just a vector of 1's to help with creating the lumped mass matrix
   NumericVector<Real> * _ones;
