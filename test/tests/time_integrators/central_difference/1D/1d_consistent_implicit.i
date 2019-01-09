@@ -186,20 +186,20 @@
   #   # gamma = 0.5
   #   # eta = 0.0162 # Rayleigh damping
   # [../]
-  [./force_x]
-    type = UserForcingFunctionNodalKernel
-    variable = disp_x
-    boundary = right
-    function = force_x
-  [../]
+  # [./force_x]
+  #   type = UserForcingFunctionNodalKernel
+  #   variable = disp_x
+  #   boundary = right
+  #   function = force_x
+  # [../]
 []
 
 [Functions]
-  # [./x_right]
-  #   type = PiecewiseLinear
-  #   x = '0   1'
-  #   y = '0 0.1'
-  # [../]
+  [./x_right]
+    type = PiecewiseLinear
+    x = '0.0 1.0 2.0 3.0 4.0' # time
+    y = '0.0 1.0 0.0 -1.0 0.0'  # displacement
+  [../]
   [./force_x]
     type = PiecewiseLinear
     x = '0.0 1.0 2.0 3.0 4.0' # time
@@ -215,13 +215,13 @@
     boundary = left
     value = 0.0
   [../]
-  # [./fixx2]
-  #   type = FunctionDirichletBC
-  #   variable = disp_x
-  #   boundary = right
-  #   function = x_right
-  #   # value = 0.0
-  # [../]
+  [./fixx2]
+    type = FunctionDirichletBC
+    variable = disp_x
+    boundary = right
+    function = x_right
+    # value = 0.0
+  [../]
   # [./fixy1]
   #   type = DirichletBC
   #   variable = disp_y
@@ -282,7 +282,7 @@
   timestep_tolerance = 1e-6
   start_time = -0.005
   end_time = 8
-  dt = 0.005
+  dt = 0.001
   [./TimeIntegrator]
     type = NewmarkBeta
     beta = 0.25

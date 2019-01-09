@@ -125,7 +125,7 @@
   [../]
 []
 
-# [AuxKernels]
+[AuxKernels]
 #   [./accel_x]
 #     type = NewmarkAccelAux
 #     variable = accel_x
@@ -255,41 +255,47 @@
 #     index_i = 2
 #     index_j = 2
 #   [../]
-# []
+[]
 
 [BCs]
-  [./x_bot]
-    type = PresetBC
-    variable = disp_x
-    boundary = bottom
-    value = 0.0
-  [../]
+  # [./x_bot]
+  #   type = DirichletBC
+  #   variable = disp_x
+  #   boundary = back
+  #   value = 0.0
+  # [../]
   [./y_bot]
-    type = PresetBC
+    type = DirichletBC
     variable = disp_y
-    boundary = bottom
+    boundary = back
     value = 0.0
   [../]
   [./z_bot]
-    type = PresetBC
+    type = DirichletBC
     variable = disp_z
-    boundary = bottom
+    boundary = back
     value = 0.0
   [../]
-  # [./Periodic]
-  #   [./x_dir]
-  #     variable = 'disp_x disp_y'
-  #     primary = '4'
-  #     secondary = '2'
-  #     translation = '1.0 0.0'
-  #   [../]
-  #   [./y_dir]
-  #     variable = 'disp_x disp_y disp_z'
-  #     primary = '1'
-  #     secondary = '3'
-  #     translation = '0.0 1.0 0.0'
-  #   [../]
-  # [../]
+  [./x_bot]
+    type = FunctionDirichletBC
+    boundary = 'back'
+    variable = disp_x
+    function = disp
+  [../]
+  [./Periodic]
+    [./x_dir]
+      variable = 'disp_x disp_y disp_z'
+      primary = 'left'
+      secondary = 'right'
+      translation = '1.0 0.0 0.0'
+    [../]
+    [./y_dir]
+      variable = 'disp_x disp_y disp_z'
+      primary = 'bottom'
+      secondary = 'top'
+      translation = '0.0 1.0 0.0'
+    [../]
+  [../]
   # [./top_x]
   #   type = PresetDisplacement
   #   boundary = 5
@@ -310,26 +316,26 @@
   #   mass = 1e3
   #   central_difference = true
   # [../]
-  [./force_x]
-    type = UserForcingFunctionNodalKernel
-    variable = disp_x
-    boundary = top
-    function = force
-  [../]
-  [./force_y]
-    type = UserForcingFunctionNodalKernel
-    variable = disp_y
-    boundary = top
-    function = force
-  [../]
+  # [./force_x]
+  #   type = UserForcingFunctionNodalKernel
+  #   variable = disp_x
+  #   boundary = top
+  #   function = force
+  # [../]
+  # [./force_y]
+  #   type = UserForcingFunctionNodalKernel
+  #   variable = disp_y
+  #   boundary = top
+  #   function = force
+  # [../]
 []
 
 [Functions]
-  # [./top_disp]
-  #   type = PiecewiseLinear
-  #   data_file = Displacement2.csv
-  #   format = columns
-  # [../]
+  [./disp]
+    type = PiecewiseLinear
+    x = '0.0 1.0 2.0 3.0 4.0' # time
+    y = '0.0 1.0 0.0 -1.0 0.0'  # displacement
+  [../]
   [./force]
     type = PiecewiseLinear
     x = '0.0 1.0 2.0 3.0 4.0' # time

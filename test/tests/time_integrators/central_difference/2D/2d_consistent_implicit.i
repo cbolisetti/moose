@@ -21,18 +21,18 @@
 []
 
 [AuxVariables]
-  # [./vel_x]
-  # [../]
-  # [./accel_x]
-  # [../]
-  # [./vel_y]
-  # [../]
-  # [./accel_y]
-  # [../]
-  # [./vel_z]
-  # [../]
-  # [./accel_z]
-  # [../]
+  [./vel_x]
+  [../]
+  [./accel_x]
+  [../]
+  [./vel_y]
+  [../]
+  [./accel_y]
+  [../]
+  [./vel_z]
+  [../]
+  [./accel_z]
+  [../]
   # [./stress_xy]
   #   order = CONSTANT
   #   family = MONOMIAL
@@ -91,19 +91,19 @@
   [./inertia_x]
     type = InertialForce
     variable = disp_x
-    # velocity = vel_x
-    # acceleration = accel_x
-    # beta = 0.25
-    # gamma = 0.5
+    velocity = vel_x
+    acceleration = accel_x
+    beta = 0.25
+    gamma = 0.5
     # eta = 7.854
   [../]
   [./inertia_y]
     type = InertialForce
     variable = disp_y
-    # velocity = vel_y
-    # acceleration = accel_y
-    # beta = 0.25
-    # gamma = 0.5
+    velocity = vel_y
+    acceleration = accel_y
+    beta = 0.25
+    gamma = 0.5
     # eta = 7.854
   [../]
   # [./inertia_z]
@@ -117,52 +117,71 @@
   # [../]
 []
 
-# [AuxKernels]
-#   [./accel_x]
-#     type = NewmarkAccelAux
-#     variable = accel_x
-#     displacement = disp_x
-#     velocity = vel_x
-#     beta = 0.25
-#     execute_on = timestep_end
-#   [../]
-#   [./vel_x]
-#     type = NewmarkVelAux
-#     variable = vel_x
-#     acceleration = accel_x
-#     gamma = 0.5
-#     execute_on = timestep_end
-#   [../]
-#   [./accel_y]
-#     type = NewmarkAccelAux
-#     variable = accel_y
-#     displacement = disp_y
-#     velocity = vel_y
-#     beta = 0.25
-#     execute_on = timestep_end
-#   [../]
-#   [./vel_y]
-#     type = NewmarkVelAux
-#     variable = vel_y
-#     acceleration = accel_y
-#     gamma = 0.5
-#     execute_on = timestep_end
-#   [../]
-#   [./accel_z]
-#     type = NewmarkAccelAux
-#     variable = accel_z
-#     displacement = disp_z
-#     velocity = vel_z
-#     beta = 0.25
-#     execute_on = timestep_end
-#   [../]
-#   [./vel_z]
-#     type = NewmarkVelAux
-#     variable = vel_z
-#     acceleration = accel_z
-#     gamma = 0.5
-#     execute_on = timestep_end
-#   [../]
+[AuxKernels]
+  # [./accel_x]
+  #   type = TestNewmarkTI
+  #   variable = accel_x
+  #   displacement = disp_x
+  #   first = false
+  # [../]
+  # [./vel_x]
+  #   type = TestNewmarkTI
+  #   variable = vel_x
+  #   displacement = disp_x
+  # [../]
+  # [./accel_y]
+  #   type = TestNewmarkTI
+  #   variable = accel_y
+  #   displacement = disp_y
+  #   first = false
+  # [../]
+  # [./vel_y]
+  #   type = TestNewmarkTI
+  #   variable = vel_y
+  #   displacement = disp_x
+  # [../]
+  [./accel_x]
+    type = NewmarkAccelAux
+    variable = accel_x
+    displacement = disp_x
+    velocity = vel_x
+    beta = 0.25
+    execute_on = timestep_end
+  [../]
+  [./vel_x]
+    type = NewmarkVelAux
+    variable = vel_x
+    acceleration = accel_x
+    gamma = 0.5
+  [../]
+  [./accel_y]
+    type = NewmarkAccelAux
+    variable = accel_y
+    displacement = disp_y
+    velocity = vel_y
+    beta = 0.25
+  [../]
+  [./vel_y]
+    type = NewmarkVelAux
+    variable = vel_y
+    acceleration = accel_y
+    gamma = 0.5
+  [../]
+  # [./accel_z]
+  #   type = NewmarkAccelAux
+  #   variable = accel_z
+  #   displacement = disp_z
+  #   velocity = vel_z
+  #   beta = 0.25
+  #   execute_on = timestep_end
+  # [../]
+  # [./vel_z]
+  #   type = NewmarkVelAux
+  #   variable = vel_z
+  #   acceleration = accel_z
+  #   gamma = 0.5
+  #   execute_on = timestep_end
+  # [../]
 #   [./stress_xy]
 #     type = RankTwoAux
 #     rank_two_tensor = stress
@@ -246,44 +265,59 @@
 #     variable = strain_zz
 #     index_i = 2
 #     index_j = 2
-#   [../]
-# []
+  # [../]
+[]
 
 [BCs]
-  [./x_bot]
-    type = PresetBC
-    variable = disp_x
-    boundary = bottom
-    value = 0.0
-  [../]
+  # [./x_bot]
+  #   type = DirichletBC
+  #   variable = disp_x
+  #   boundary = bottom
+  #   value = 0.0
+  # [../]
   [./y_bot]
-    type = PresetBC
+    type = DirichletBC
     variable = disp_y
     boundary = bottom
     value = 0.0
   [../]
-  # [./Periodic]
-  #   [./x_dir]
-  #     variable = 'disp_x disp_y'
-  #     primary = '4'
-  #     secondary = '2'
-  #     translation = '1.0 0.0'
-  #   [../]
-  #   [./y_dir]
-  #     variable = 'disp_x disp_y disp_z'
-  #     primary = '1'
-  #     secondary = '3'
-  #     translation = '0.0 1.0 0.0'
-  #   [../]
-  # [../]
-  # [./top_x]
+  [./x_bot]
+    type = PresetDisplacement
+    boundary = bottom
+    variable = disp_x
+    beta = 0.25
+    velocity = vel_x
+    acceleration = accel_x
+    function = disp
+  [../]
+  [./Periodic]
+    [./x_dir]
+      variable = 'disp_x disp_y'
+      primary = 'left'
+      secondary = 'right'
+      translation = '1.0 0.0 0.0'
+    [../]
+    # [./y_dir]
+    #   variable = 'disp_x disp_y disp_z'
+    #   primary = '1'
+    #   secondary = '3'
+    #   translation = '0.0 1.0 0.0'
+    # [../]
+  [../]
+  # [./x_top]
   #   type = PresetDisplacement
-  #   boundary = 5
+  #   boundary = top
   #   variable = disp_x
   #   beta = 0.25
   #   velocity = vel_x
   #   acceleration = accel_x
-  #   function = top_disp
+  #   function = disp
+  # [../]
+  # [./y_top]
+  #   type = DirichletBC
+  #   variable = disp_y
+  #   boundary = top
+  #   value = 0.0
   # [../]
 []
 
@@ -296,20 +330,20 @@
   #   mass = 1e3
   #   central_difference = true
   # [../]
-  [./force_x]
-    type = UserForcingFunctionNodalKernel
-    variable = disp_x
-    boundary = top
-    function = force_x
-  [../]
+  # [./force_x]
+  #   type = UserForcingFunctionNodalKernel
+  #   variable = disp_x
+  #   boundary = top
+  #   function = force_x
+  # [../]
 []
 
 [Functions]
-  # [./top_disp]
-  #   type = PiecewiseLinear
-  #   data_file = Displacement2.csv
-  #   format = columns
-  # [../]
+  [./disp]
+    type = PiecewiseLinear
+    x = '0.0 1.0 2.0 3.0 4.0' # time
+    y = '0.0 1.0 0.0 -1.0 0.0'  # displacement
+  [../]
   [./force_x]
     type = PiecewiseLinear
     x = '0.0 1.0 2.0 3.0 4.0' # time
@@ -354,18 +388,20 @@
 
 [Executioner]
   type = Transient
-  solve_type = NEWTON
+  solve_type = PJFNK
   nl_abs_tol = 1e-11
   nl_rel_tol = 1e-11
   start_time = -0.01
   end_time = 8
-  dt = 0.005
+  dt = 0.001
   timestep_tolerance = 1e-6
-  [./TimeIntegrator]
-    type = NewmarkBeta
-    beta = 0.25
-    gamma = 0.5
-  [../]
+  # [./TimeIntegrator]
+  #   type = NewmarkBeta
+  #   beta = 0.25
+  #   gamma = 0.5
+  # [../]
+  # Time integrator scheme
+  # scheme = "newmark-beta"
 []
 
 [Postprocessors]
