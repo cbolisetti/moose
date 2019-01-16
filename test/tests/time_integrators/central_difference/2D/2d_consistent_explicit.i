@@ -5,8 +5,8 @@
 [Mesh]
   type = GeneratedMesh # Can generate simple lines, rectangles and rectangular prisms
   dim = 2 # Dimension of the mesh
-  nx = 1 # Number of elements in the x direction
-  ny = 1 # Number of elements in the y direction
+  nx = 5 # Number of elements in the x direction
+  ny = 5 # Number of elements in the y direction
   xmin = 0.0
   xmax = 1
   ymin = 0.0
@@ -321,6 +321,10 @@
     x = '0.0 1.0 2.0 3.0 4.0' # time
     y = '0.0 1.0 0.0 -1.0 0.0'  # displacement
   [../]
+  # [./disp]
+  #   type = ParsedFunction
+  #   value = 0.003*t*t*sin(2*pi*t/0.33)*cos(2*pi*t/0.1)
+  # [../]
   [./force_x]
     type = PiecewiseLinear
     x = '0.0 1.0 2.0 3.0 4.0' # time
@@ -372,7 +376,7 @@
   # timestep_tolerance = 1e-6
   start_time = -0.01
   end_time = 8
-  dt = 0.005
+  dt = 0.001
   [./TimeIntegrator]
     type = CentralDifference
   [../]
@@ -383,13 +387,13 @@
     type = TimestepSize
   [../]
   [./disp_2x]
-    type = NodalVariableValue
-    nodeid = 2
+    type = PointValue
+    point = '1.0 1.0 0.0'
     variable = disp_x
   [../]
   [./disp_2y]
-    type = NodalVariableValue
-    nodeid = 2
+    type = PointValue
+    point = '1.0 1.0 0.0'
     variable = disp_y
   [../]
   # [./disp_6z]
@@ -492,5 +496,5 @@
 [Outputs]
   exodus = false
   csv = true
-  perf_graph = false
+  perf_graph = true
 []

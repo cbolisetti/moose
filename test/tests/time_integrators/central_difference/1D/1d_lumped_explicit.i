@@ -4,7 +4,7 @@
   type = GeneratedMesh
   xmin = 0
   xmax = 10
-  nx = 1
+  nx = 5
   dim = 1
 []
 
@@ -139,6 +139,7 @@
     type = InertialForce
     variable = disp_x
     central_difference = true
+    lumped = true
     # velocity = vel_x
     # acceleration = accel_x
     # beta = 0.25
@@ -197,11 +198,11 @@
 []
 
 [Functions]
-  # [./x_right]
-  #   type = PiecewiseLinear
-  #   x = '0   1'
-  #   y = '0 0.1'
-  # [../]
+  [./x_right]
+    type = PiecewiseLinear
+    x = '0.0 1.0 2.0 3.0 4.0' # time
+    y = '0.0 1.0 0.0 -1.0 0.0'  # displacement
+  [../]
   [./force_x]
     type = PiecewiseLinear
     x = '0.0 1.0 2.0 3.0 4.0' # time

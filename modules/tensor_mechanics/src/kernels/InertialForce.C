@@ -39,11 +39,13 @@ validParams<InertialForce>()
   params.addParam<MaterialPropertyName>(
       "density", "density", "Name of Material Property that provides the density");
   params.addParam<bool>("central_difference", false, "Switch for Central Difference time integration.");
+  params.addParam<bool>("lumped", false, "Switch for lumped mass matrix.");
   return params;
 }
 
 InertialForce::InertialForce(const InputParameters & parameters)
   : TimeKernel(parameters),
+    _var_num(_var.number()),
     _density(getMaterialProperty<Real>("density")),
     _beta(isParamValid("beta") ? getParam<Real>("beta") : 0.1),
     _gamma(isParamValid("gamma") ? getParam<Real>("gamma") : 0.1),
@@ -89,15 +91,57 @@ InertialForce::computeQpResidual()
   }
   else if (getParam<bool>("central_difference"))
   {
-    // std::cout << "***** Executing Central Difference Inertial Force!\n";
-    return _test[_i][_qp] * _density[_qp] * ((*_u_older)[_qp] - (*_u_old)[_qp]) / (_dt * _dt);
-    return 0.0;
+    if (getParam<bool>("lumped")) // lumped mass matrix
+      return _test[_i][_qp] * _density[_qp]; // will multiply by (u_older - u_old) after lumping the matrix
+    else //consistent mass matrix
+      return _test[_i][_qp] * _density[_qp] * ((*_u_older)[_qp] - (*_u_old)[_qp]) / (_dt * _dt);
   }
   else
   {
     return _test[_i][_qp] * _density[_qp] *
            ((*_u_dotdot)[_qp] + (*_u_dot)[_qp] * _eta[_qp] * (1.0 + _alpha) -
             _alpha * _eta[_qp] * (*_u_dot_old)[_qp]);
+  }
+}
+
+void
+InertialForce::computeResidual()
+{
+  prepareVectorTag(_assembly, _var.number());
+
+  precalculateResidual();
+  for (_i = 0; _i < _test.size(); _i++)
+    for (_qp = 0; _qp < _qrule->n_points(); _qp++)
+      _local_re(_i) += _JxW[_qp] * _coord[_qp] * computeQpResidual(); // residual is only the lumped mass here for lumped option
+
+  // Residual calculation for lumped-mass matrices for explicit integration
+  if (getParam<bool>("lumped") && getParam<bool>("central_difference"))
+  {
+    std::vector<Node *> node;
+    node.resize(_test.size());
+    for (unsigned int i = 0; i < node.size(); ++i)
+      node[i] = _current_elem->get_node(i);
+
+    // Fetch the solution for the two end nodes at time t
+    NonlinearSystemBase & nonlinear_sys = _fe_problem.getNonlinearSystemBase();
+    const NumericVector<Number> & sol_old = nonlinear_sys.solutionOld();
+    const NumericVector<Number> & sol_older = nonlinear_sys.solutionOlder();
+    Real u_old, u_older;
+    for (unsigned int j = 0; j < node.size(); j++)
+    {
+      u_old = sol_old(node[j]->dof_number(nonlinear_sys.number(), _var_num, 0));
+      u_older = sol_older(node[j]->dof_number(nonlinear_sys.number(), _var_num, 0));
+      _local_re(j) *= (u_older - u_old) / (_dt *_dt); // multiplying the lumped mass
+    }
+  }
+
+  accumulateTaggedLocalResidual();
+
+  if (_has_save_in)
+  {
+    Threads::spin_mutex::scoped_lock lock(Threads::spin_mtx);
+    for (const auto & var : _save_in)
+      var->sys().solution().add_vector(_local_re, var->dofIndices());
   }
 }
 
@@ -112,8 +156,6 @@ InertialForce::computeQpJacobian()
                _phi[_j][_qp];
   else
     {
-      // std::cout << "du_dotdot_du is ************** \n" << (*_du_dotdot_du)[_qp] << std::endl;
-      // std::cout << "INERTIAL FORCE JACOBIAN IS:\n" << _test[_i][_qp] * _density[_qp] * (*_du_dotdot_du)[_qp] * _phi[_j][_qp] << std::endl;
       return _test[_i][_qp] * _density[_qp] * (*_du_dotdot_du)[_qp] * _phi[_j][_qp] +
            _eta[_qp] * (1 + _alpha) * _test[_i][_qp] * _density[_qp] * (*_du_dot_du)[_qp] *
                _phi[_j][_qp];

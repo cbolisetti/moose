@@ -5,8 +5,8 @@
 [Mesh]
   type = GeneratedMesh # Can generate simple lines, rectangles and rectangular prisms
   dim = 2 # Dimension of the mesh
-  nx = 10 # Number of elements in the x direction
-  ny = 10 # Number of elements in the y direction
+  nx = 5 # Number of elements in the x direction
+  ny = 5 # Number of elements in the y direction
   xmin = 0.0
   xmax = 1
   ymin = 0.0
@@ -21,18 +21,18 @@
 []
 
 [AuxVariables]
-  [./vel_x]
-  [../]
-  [./accel_x]
-  [../]
-  [./vel_y]
-  [../]
-  [./accel_y]
-  [../]
-  [./vel_z]
-  [../]
-  [./accel_z]
-  [../]
+  # [./vel_x]
+  # [../]
+  # [./accel_x]
+  # [../]
+  # [./vel_y]
+  # [../]
+  # [./accel_y]
+  # [../]
+  # [./vel_z]
+  # [../]
+  # [./accel_z]
+  # [../]
   # [./stress_xy]
   #   order = CONSTANT
   #   family = MONOMIAL
@@ -91,19 +91,23 @@
   [./inertia_x]
     type = InertialForce
     variable = disp_x
-    velocity = vel_x
-    acceleration = accel_x
-    beta = 0.25
-    gamma = 0.5
+    # velocity = vel_x
+    # acceleration = accel_x
+    central_difference = true
+    lumped = true
+    # beta = 0.25
+    # gamma = 0.5
     # eta = 7.854
   [../]
   [./inertia_y]
     type = InertialForce
     variable = disp_y
-    velocity = vel_y
-    acceleration = accel_y
-    beta = 0.25
-    gamma = 0.5
+    # velocity = vel_y
+    # acceleration = accel_y
+    central_difference = true
+    lumped = true
+    # beta = 0.25
+    # gamma = 0.5
     # eta = 7.854
   [../]
   # [./inertia_z]
@@ -117,71 +121,52 @@
   # [../]
 []
 
-[AuxKernels]
-  # [./accel_x]
-  #   type = TestNewmarkTI
-  #   variable = accel_x
-  #   displacement = disp_x
-  #   first = false
-  # [../]
-  # [./vel_x]
-  #   type = TestNewmarkTI
-  #   variable = vel_x
-  #   displacement = disp_x
-  # [../]
-  # [./accel_y]
-  #   type = TestNewmarkTI
-  #   variable = accel_y
-  #   displacement = disp_y
-  #   first = false
-  # [../]
-  # [./vel_y]
-  #   type = TestNewmarkTI
-  #   variable = vel_y
-  #   displacement = disp_x
-  # [../]
-  [./accel_x]
-    type = NewmarkAccelAux
-    variable = accel_x
-    displacement = disp_x
-    velocity = vel_x
-    beta = 0.25
-    execute_on = timestep_end
-  [../]
-  [./vel_x]
-    type = NewmarkVelAux
-    variable = vel_x
-    acceleration = accel_x
-    gamma = 0.5
-  [../]
-  [./accel_y]
-    type = NewmarkAccelAux
-    variable = accel_y
-    displacement = disp_y
-    velocity = vel_y
-    beta = 0.25
-  [../]
-  [./vel_y]
-    type = NewmarkVelAux
-    variable = vel_y
-    acceleration = accel_y
-    gamma = 0.5
-  [../]
-  # [./accel_z]
-  #   type = NewmarkAccelAux
-  #   variable = accel_z
-  #   displacement = disp_z
-  #   velocity = vel_z
-  #   beta = 0.25
-  #   execute_on = timestep_end
-  # [../]
-  # [./vel_z]
-  #   type = NewmarkVelAux
-  #   variable = vel_z
-  #   acceleration = accel_z
-  #   gamma = 0.5
-  #   execute_on = timestep_end
-  # [../]
+# [AuxKernels]
+#   [./accel_x]
+#     type = NewmarkAccelAux
+#     variable = accel_x
+#     displacement = disp_x
+#     velocity = vel_x
+#     beta = 0.25
+#     execute_on = timestep_end
+#   [../]
+#   [./vel_x]
+#     type = NewmarkVelAux
+#     variable = vel_x
+#     acceleration = accel_x
+#     gamma = 0.5
+#     execute_on = timestep_end
+#   [../]
+#   [./accel_y]
+#     type = NewmarkAccelAux
+#     variable = accel_y
+#     displacement = disp_y
+#     velocity = vel_y
+#     beta = 0.25
+#     execute_on = timestep_end
+#   [../]
+#   [./vel_y]
+#     type = NewmarkVelAux
+#     variable = vel_y
+#     acceleration = accel_y
+#     gamma = 0.5
+#     execute_on = timestep_end
+#   [../]
+#   [./accel_z]
+#     type = NewmarkAccelAux
+#     variable = accel_z
+#     displacement = disp_z
+#     velocity = vel_z
+#     beta = 0.25
+#     execute_on = timestep_end
+#   [../]
+#   [./vel_z]
+#     type = NewmarkVelAux
+#     variable = vel_z
+#     acceleration = accel_z
+#     gamma = 0.5
+#     execute_on = timestep_end
+#   [../]
 #   [./stress_xy]
 #     type = RankTwoAux
 #     rank_two_tensor = stress
@@ -265,8 +250,8 @@
 #     variable = strain_zz
 #     index_i = 2
 #     index_j = 2
-  # [../]
-[]
+#   [../]
+# []
 
 [BCs]
   # [./x_bot]
@@ -282,21 +267,18 @@
     value = 0.0
   [../]
   [./x_bot]
-    type = PresetDisplacement
+    type = FunctionDirichletBC
     boundary = bottom
     variable = disp_x
-    beta = 0.25
-    velocity = vel_x
-    acceleration = accel_x
     function = disp
   [../]
   [./Periodic]
-    # [./x_dir]
-    #   variable = 'disp_x disp_y'
-    #   primary = 'left'
-    #   secondary = 'right'
-    #   translation = '1.0 0.0 0.0'
-    # [../]
+    [./x_dir]
+      variable = 'disp_x disp_y'
+      primary = 'left'
+      secondary = 'right'
+      translation = '1.0 0.0 0.0'
+    [../]
     # [./y_dir]
     #   variable = 'disp_x disp_y disp_z'
     #   primary = '1'
@@ -305,12 +287,9 @@
     # [../]
   [../]
   # [./x_top]
-  #   type = PresetDisplacement
+  #   type = FunctionDirichletBC
   #   boundary = top
   #   variable = disp_x
-  #   beta = 0.25
-  #   velocity = vel_x
-  #   acceleration = accel_x
   #   function = disp
   # [../]
   # [./y_top]
@@ -344,6 +323,11 @@
     x = '0.0 1.0 2.0 3.0 4.0' # time
     y = '0.0 1.0 0.0 -1.0 0.0'  # displacement
   [../]
+  [./disp]
+    type = ParsedFunction
+    # value = 0.003*t*t*sin(2*pi*t/0.33)*cos(2*pi*t/0.1)
+    value = t*sin(2*pi*t)
+  [../]
   [./force_x]
     type = PiecewiseLinear
     x = '0.0 1.0 2.0 3.0 4.0' # time
@@ -365,6 +349,7 @@
     type = ComputeIncrementalSmallStrain
     block = 0
     displacements = 'disp_x disp_y'
+    central_difference = true
   [../]
   [./stress_block]
     type = ComputeFiniteStrainElasticStress
@@ -388,20 +373,17 @@
 
 [Executioner]
   type = Transient
-  solve_type = PJFNK
-  nl_abs_tol = 1e-11
-  nl_rel_tol = 1e-11
+  # solve_type = NEWTON
+  # nl_abs_tol = 1e-11
+  # nl_rel_tol = 1e-11
+  # timestep_tolerance = 1e-6
   start_time = -0.01
   end_time = 8
   dt = 0.001
-  timestep_tolerance = 1e-6
-  # [./TimeIntegrator]
-  #   type = NewmarkBeta
-  #   beta = 0.25
-  #   gamma = 0.5
-  # [../]
-  # Time integrator scheme
-  # scheme = "newmark-beta"
+  [./TimeIntegrator]
+    type = CentralDifference
+    solve_type = lumped
+  [../]
 []
 
 [Postprocessors]
@@ -516,7 +498,7 @@
 []
 
 [Outputs]
-  exodus = false
+  exodus = true
   csv = true
-  perf_graph = false
+  perf_graph = true
 []

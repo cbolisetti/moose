@@ -4,7 +4,7 @@
   type = GeneratedMesh
   xmin = 0
   xmax = 10
-  nx = 1
+  nx = 5
   dim = 1
 []
 
@@ -186,12 +186,12 @@
   #   # gamma = 0.5
   #   # eta = 0.0162 # Rayleigh damping
   # [../]
-  # [./force_x]
-  #   type = UserForcingFunctionNodalKernel
-  #   variable = disp_x
-  #   boundary = right
-  #   function = force_x
-  # [../]
+  [./force_x]
+    type = UserForcingFunctionNodalKernel
+    variable = disp_x
+    boundary = right
+    function = force_x
+  [../]
 []
 
 [Functions]
@@ -215,13 +215,13 @@
     boundary = left
     value = 0.0
   [../]
-  [./fixx2]
-    type = FunctionDirichletBC
-    variable = disp_x
-    boundary = right
-    function = x_right
-    # value = 0.0
-  [../]
+  # [./fixx2]
+  #   type = FunctionDirichletBC
+  #   variable = disp_x
+  #   boundary = right
+  #   function = x_right
+  #   # value = 0.0
+  # [../]
   # [./fixy1]
   #   type = DirichletBC
   #   variable = disp_y

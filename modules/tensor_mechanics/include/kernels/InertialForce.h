@@ -24,12 +24,15 @@ class InertialForce : public TimeKernel
 public:
   InertialForce(const InputParameters & parameters);
 
-protected:
-  virtual Real computeQpResidual();
+  virtual void computeResidual() override;
 
-  virtual Real computeQpJacobian();
+protected:
+  virtual Real computeQpResidual() override;
+
+  virtual Real computeQpJacobian() override;
 
 private:
+  unsigned int _var_num;
   const MaterialProperty<Real> & _density;
   const VariableValue * _u_old;
   const VariableValue * _u_older;

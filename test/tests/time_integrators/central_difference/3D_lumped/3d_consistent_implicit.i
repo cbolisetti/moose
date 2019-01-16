@@ -1,22 +1,27 @@
-# One element test to test the central difference time integrator.
+# One element test to test the central difference time integrator in 3D.
 # The back surface of the element (y=0) is fixed and the front surface (y=1)
 # is moved by applying a cyclic force.
 
 [Mesh]
   type = GeneratedMesh # Can generate simple lines, rectangles and rectangular prisms
-  dim = 2 # Dimension of the mesh
-  nx = 10 # Number of elements in the x direction
-  ny = 10 # Number of elements in the y direction
+  dim = 3 # Dimension of the mesh
+  nx = 1 # Number of elements in the x direction
+  ny = 1 # Number of elements in the y direction
+  nz = 1 # Number of elements in the z direction
   xmin = 0.0
   xmax = 1
   ymin = 0.0
   ymax = 1
+  zmin = 0.0
+  zmax = 1
 []
 
 [Variables]
   [./disp_x]
   [../]
   [./disp_y]
+  [../]
+  [./disp_z]
   [../]
 []
 
@@ -85,103 +90,117 @@
 
 [Kernels]
   [./DynamicTensorMechanics]
-    displacements = 'disp_x disp_y'
+    displacements = 'disp_x disp_y disp_z'
     # zeta = 0.00006366
   [../]
   [./inertia_x]
     type = InertialForce
     variable = disp_x
-    velocity = vel_x
-    acceleration = accel_x
-    beta = 0.25
-    gamma = 0.5
+    # velocity = vel_x
+    # acceleration = accel_x
+    # beta = 0.25
+    # gamma = 0.5
     # eta = 7.854
   [../]
   [./inertia_y]
     type = InertialForce
     variable = disp_y
-    velocity = vel_y
-    acceleration = accel_y
-    beta = 0.25
-    gamma = 0.5
+    # velocity = vel_y
+    # acceleration = accel_y
+    # beta = 0.25
+    # gamma = 0.5
     # eta = 7.854
   [../]
-  # [./inertia_z]
-  #   type = InertialForce
-  #   variable = disp_z
-  #   velocity = vel_z
-  #   acceleration = accel_z
-  #   beta = 0.25
-  #   gamma = 0.5
-  #   eta = 7.854
-  # [../]
+  [./inertia_z]
+    type = InertialForce
+    variable = disp_z
+    # velocity = vel_z
+    # acceleration = accel_z
+    # beta = 0.25
+    # gamma = 0.5
+    # eta = 7.854
+  [../]
 []
 
 [AuxKernels]
-  # [./accel_x]
-  #   type = TestNewmarkTI
-  #   variable = accel_x
-  #   displacement = disp_x
-  #   first = false
-  # [../]
-  # [./vel_x]
-  #   type = TestNewmarkTI
-  #   variable = vel_x
-  #   displacement = disp_x
-  # [../]
-  # [./accel_y]
-  #   type = TestNewmarkTI
-  #   variable = accel_y
-  #   displacement = disp_y
-  #   first = false
-  # [../]
-  # [./vel_y]
-  #   type = TestNewmarkTI
-  #   variable = vel_y
-  #   displacement = disp_x
-  # [../]
   [./accel_x]
-    type = NewmarkAccelAux
+    type = TestNewmarkTI
     variable = accel_x
     displacement = disp_x
-    velocity = vel_x
-    beta = 0.25
-    execute_on = timestep_end
+    first = false
   [../]
   [./vel_x]
-    type = NewmarkVelAux
+    type = TestNewmarkTI
     variable = vel_x
-    acceleration = accel_x
-    gamma = 0.5
+    displacement = disp_x
   [../]
   [./accel_y]
-    type = NewmarkAccelAux
+    type = TestNewmarkTI
     variable = accel_y
     displacement = disp_y
-    velocity = vel_y
-    beta = 0.25
+    first = false
   [../]
   [./vel_y]
-    type = NewmarkVelAux
+    type = TestNewmarkTI
     variable = vel_y
-    acceleration = accel_y
-    gamma = 0.5
+    displacement = disp_x
   [../]
-  # [./accel_z]
-  #   type = NewmarkAccelAux
-  #   variable = accel_z
-  #   displacement = disp_z
-  #   velocity = vel_z
-  #   beta = 0.25
-  #   execute_on = timestep_end
-  # [../]
-  # [./vel_z]
-  #   type = NewmarkVelAux
-  #   variable = vel_z
-  #   acceleration = accel_z
-  #   gamma = 0.5
-  #   execute_on = timestep_end
-  # [../]
+  [./accel_z]
+    type = TestNewmarkTI
+    variable = accel_z
+    displacement = disp_z
+    first = false
+  [../]
+  [./vel_z]
+    type = TestNewmarkTI
+    variable = vel_z
+    displacement = disp_z
+  [../]
+#   [./accel_x]
+#     type = NewmarkAccelAux
+#     variable = accel_x
+#     displacement = disp_x
+#     velocity = vel_x
+#     beta = 0.25
+#     execute_on = timestep_end
+#   [../]
+#   [./vel_x]
+#     type = NewmarkVelAux
+#     variable = vel_x
+#     acceleration = accel_x
+#     gamma = 0.5
+#     execute_on = timestep_end
+#   [../]
+#   [./accel_y]
+#     type = NewmarkAccelAux
+#     variable = accel_y
+#     displacement = disp_y
+#     velocity = vel_y
+#     beta = 0.25
+#     execute_on = timestep_end
+#   [../]
+#   [./vel_y]
+#     type = NewmarkVelAux
+#     variable = vel_y
+#     acceleration = accel_y
+#     gamma = 0.5
+#     execute_on = timestep_end
+#   [../]
+#   [./accel_z]
+#     type = NewmarkAccelAux
+#     variable = accel_z
+#     displacement = disp_z
+#     velocity = vel_z
+#     beta = 0.25
+#     execute_on = timestep_end
+#   [../]
+#   [./vel_z]
+#     type = NewmarkVelAux
+#     variable = vel_z
+#     acceleration = accel_z
+#     gamma = 0.5
+#     execute_on = timestep_end
+#   [../]
 #   [./stress_xy]
 #     type = RankTwoAux
 #     rank_two_tensor = stress
@@ -265,25 +284,31 @@
 #     variable = strain_zz
 #     index_i = 2
 #     index_j = 2
-  # [../]
+#   [../]
 []
 
 [BCs]
   # [./x_bot]
-  #   type = DirichletBC
+  #   type = PresetBC
   #   variable = disp_x
   #   boundary = bottom
   #   value = 0.0
   # [../]
   [./y_bot]
-    type = DirichletBC
+    type = PresetBC
     variable = disp_y
-    boundary = bottom
+    boundary = 'back'
+    value = 0.0
+  [../]
+  [./z_bot]
+    type = PresetBC
+    variable = disp_z
+    boundary = 'back'
     value = 0.0
   [../]
   [./x_bot]
     type = PresetDisplacement
-    boundary = bottom
+    boundary = 'back'
     variable = disp_x
     beta = 0.25
     velocity = vel_x
@@ -291,33 +316,27 @@
     function = disp
   [../]
   [./Periodic]
-    # [./x_dir]
-    #   variable = 'disp_x disp_y'
-    #   primary = 'left'
-    #   secondary = 'right'
-    #   translation = '1.0 0.0 0.0'
-    # [../]
-    # [./y_dir]
-    #   variable = 'disp_x disp_y disp_z'
-    #   primary = '1'
-    #   secondary = '3'
-    #   translation = '0.0 1.0 0.0'
-    # [../]
+    [./x_dir]
+      variable = 'disp_x disp_y disp_z'
+      primary = 'left'
+      secondary = 'right'
+      translation = '1.0 0.0 0.0'
+    [../]
+    [./y_dir]
+      variable = 'disp_x disp_y disp_z'
+      primary = 'bottom'
+      secondary = 'top'
+      translation = '0.0 1.0 0.0'
+    [../]
   [../]
-  # [./x_top]
+  # [./top_x]
   #   type = PresetDisplacement
-  #   boundary = top
+  #   boundary = 5
   #   variable = disp_x
   #   beta = 0.25
   #   velocity = vel_x
   #   acceleration = accel_x
-  #   function = disp
-  # [../]
-  # [./y_top]
-  #   type = DirichletBC
-  #   variable = disp_y
-  #   boundary = top
-  #   value = 0.0
+  #   function = top_disp
   # [../]
 []
 
@@ -334,7 +353,13 @@
   #   type = UserForcingFunctionNodalKernel
   #   variable = disp_x
   #   boundary = top
-  #   function = force_x
+  #   function = force
+  # [../]
+  # [./force_y]
+  #   type = UserForcingFunctionNodalKernel
+  #   variable = disp_y
+  #   boundary = top
+  #   function = force
   # [../]
 []
 
@@ -364,7 +389,7 @@
   [./strain_block]
     type = ComputeIncrementalSmallStrain
     block = 0
-    displacements = 'disp_x disp_y'
+    displacements = 'disp_x disp_y disp_z'
   [../]
   [./stress_block]
     type = ComputeFiniteStrainElasticStress
@@ -388,35 +413,38 @@
 
 [Executioner]
   type = Transient
-  solve_type = PJFNK
-  nl_abs_tol = 1e-11
-  nl_rel_tol = 1e-11
+  solve_type = NEWTON
+  nl_abs_tol = 1e-08
+  nl_rel_tol = 1e-08
+  timestep_tolerance = 1e-6
   start_time = -0.01
   end_time = 8
   dt = 0.001
-  timestep_tolerance = 1e-6
-  # [./TimeIntegrator]
-  #   type = NewmarkBeta
-  #   beta = 0.25
-  #   gamma = 0.5
-  # [../]
-  # Time integrator scheme
-  # scheme = "newmark-beta"
+  [./TimeIntegrator]
+    type = NewmarkBeta
+    beta = 0.25
+    gamma = 0.5
+  [../]
 []
 
 [Postprocessors]
   [./_dt]
     type = TimestepSize
   [../]
-  [./disp_2x]
-    type = PointValue
-    point = '1.0 1.0 0.0'
+  [./disp_6x]
+    type = NodalVariableValue
+    nodeid = 6
     variable = disp_x
   [../]
-  [./disp_2y]
-    type = PointValue
-    point = '1.0 1.0 0.0'
+  [./disp_6y]
+    type = NodalVariableValue
+    nodeid = 6
     variable = disp_y
+  [../]
+  [./disp_6z]
+    type = NodalVariableValue
+    nodeid = 6
+    variable = disp_z
   [../]
   # [./disp_6z]
   #   type = NodalVariableValue
