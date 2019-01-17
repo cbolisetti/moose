@@ -66,10 +66,8 @@ CentralDifference::computeTimeDerivatives()
   //      second_term = u_older
   NumericVector<Number> & u_dot = *_sys.solutionUDot();
   u_dot = *_sys.solutionState(1); // old solution, which is the same as the current solution at this point
-  // std::cout << "u\t" << _u_dot(0) << "\n";
   u_dot -= *_sys.solutionState(3); // 'older than older' solution
   u_dot *= 1.0 / (2.0 * _dt);
-  // std::cout << "u_dot\t" << _u_dot(0) << "\n";
 
   // make sure _u_dotdot and _u_dot are in good state
   u_dotdot.close();
