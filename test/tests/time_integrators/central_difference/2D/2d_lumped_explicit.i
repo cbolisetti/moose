@@ -5,12 +5,12 @@
 [Mesh]
   type = GeneratedMesh # Can generate simple lines, rectangles and rectangular prisms
   dim = 2 # Dimension of the mesh
-  nx = 5 # Number of elements in the x direction
-  ny = 5 # Number of elements in the y direction
+  nx = 100 # Number of elements in the x direction
+  ny = 100 # Number of elements in the y direction
   xmin = 0.0
-  xmax = 1
+  xmax = 100
   ymin = 0.0
-  ymax = 1
+  ymax = 100
 []
 
 [Variables]
@@ -277,7 +277,7 @@
       variable = 'disp_x disp_y'
       primary = 'left'
       secondary = 'right'
-      translation = '1.0 0.0 0.0'
+      translation = '100.0 0.0 0.0'
     [../]
     # [./y_dir]
     #   variable = 'disp_x disp_y disp_z'
@@ -318,15 +318,15 @@
 []
 
 [Functions]
-  [./disp]
-    type = PiecewiseLinear
-    x = '0.0 1.0 2.0 3.0 4.0' # time
-    y = '0.0 1.0 0.0 -1.0 0.0'  # displacement
-  [../]
+  # [./disp]
+  #   type = PiecewiseLinear
+  #   x = '0.0 1.0 2.0 3.0 4.0' # time
+  #   y = '0.0 1.0 0.0 -1.0 0.0'  # displacement
+  # [../]
   [./disp]
     type = ParsedFunction
     # value = 0.003*t*t*sin(2*pi*t/0.33)*cos(2*pi*t/0.1)
-    value = t*sin(2*pi*t)
+    value = sin(2*pi*t*t)
   [../]
   [./force_x]
     type = PiecewiseLinear
@@ -377,8 +377,8 @@
   # nl_abs_tol = 1e-11
   # nl_rel_tol = 1e-11
   # timestep_tolerance = 1e-6
-  start_time = -0.01
-  end_time = 8
+  start_time = 0
+  end_time = 5
   dt = 0.001
   [./TimeIntegrator]
     type = CentralDifference

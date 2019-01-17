@@ -187,7 +187,7 @@ ActuallyExplicitEuler::solve()
       // Note: This is actually how PETSc does it
       // It's not "perfectly optimal" - but it will be fast (and universal)
       mass_matrix.vector_mult(_mass_matrix_diag, *_ones);
-      std::cout << "LUMPED MASS MATRIX IS:\n" << _mass_matrix_diag << std::endl;
+      // std::cout << "LUMPED MASS MATRIX IS:\n" << _mass_matrix_diag << std::endl;
 
       // _mass_residual.pointwise_mult(_mass_matrix_diag, _test_vec); // Calculating mass residual here instead of inertia kernels
       // _explicit_residual -= _mass_residual;  // Adding mass residual here directly (make inertia kernels return zero for residual)

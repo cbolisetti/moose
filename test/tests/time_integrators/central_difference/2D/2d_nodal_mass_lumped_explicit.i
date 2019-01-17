@@ -5,12 +5,12 @@
 [Mesh]
   type = GeneratedMesh # Can generate simple lines, rectangles and rectangular prisms
   dim = 2 # Dimension of the mesh
-  nx = 100 # Number of elements in the x direction
-  ny = 100 # Number of elements in the y direction
+  nx = 2 # Number of elements in the x direction
+  ny = 2 # Number of elements in the y direction
   xmin = 0.0
-  xmax = 100
+  xmax = 1
   ymin = 0.0
-  ymax = 100
+  ymax = 1
 []
 
 [Variables]
@@ -94,6 +94,7 @@
     # velocity = vel_x
     # acceleration = accel_x
     central_difference = true
+    lumped = true
     # beta = 0.25
     # gamma = 0.5
     # eta = 7.854
@@ -104,6 +105,7 @@
     # velocity = vel_y
     # acceleration = accel_y
     central_difference = true
+    lumped = true
     # beta = 0.25
     # gamma = 0.5
     # eta = 7.854
@@ -275,7 +277,7 @@
       variable = 'disp_x disp_y'
       primary = 'left'
       secondary = 'right'
-      translation = '100.0 0.0 0.0'
+      translation = '1.0 0.0 0.0'
     [../]
     # [./y_dir]
     #   variable = 'disp_x disp_y disp_z'
@@ -299,14 +301,14 @@
 []
 
 [NodalKernels]
-  # [./x_nodal_mass]
-  #   type = NodalTranslationalInertia
-  #   block = '0'
-  #   variable = disp_x
-  #   boundary = right
-  #   mass = 1e3
-  #   central_difference = true
-  # [../]
+  [./x_nodal_mass]
+    type = NodalTranslationalInertia
+    block = '0'
+    variable = disp_x
+    boundary = right
+    mass = 1e3
+    central_difference = true
+  [../]
   # [./force_x]
   #   type = UserForcingFunctionNodalKernel
   #   variable = disp_x
@@ -376,10 +378,11 @@
   # nl_rel_tol = 1e-11
   # timestep_tolerance = 1e-6
   start_time = 0
-  end_time = 5
+  end_time = 10
   dt = 0.001
   [./TimeIntegrator]
     type = CentralDifference
+    solve_type = lumped
   [../]
 []
 
@@ -495,7 +498,7 @@
 []
 
 [Outputs]
-  exodus = false
+  exodus = true
   csv = true
   perf_graph = true
 []
