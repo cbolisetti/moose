@@ -42,6 +42,9 @@ protected:
   /// Old value of displacement
   const VariableValue * _u_old;
 
+  /// Older value of displacement
+  const VariableValue * _u_older;
+
   /// Newmark time integration parameter
   const Real _beta;
 

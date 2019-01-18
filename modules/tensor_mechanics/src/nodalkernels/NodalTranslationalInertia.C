@@ -47,6 +47,7 @@ validParams<NodalTranslationalInertia>()
   params.addParam<FileName>(
       "nodal_mass_file",
       "The file containing the nodal positions and the corresponding nodal masses.");
+  params.addParam<bool>("central_difference", false, "Switch for central difference integration.");
   return params;
 }
 
@@ -72,6 +73,8 @@ NodalTranslationalInertia::NodalTranslationalInertia(const InputParameters & par
   else if (!isParamValid("beta") && !isParamValid("gamma") && !isParamValid("velocity") &&
            !isParamValid("acceleration"))
   {
+    _u_older = &valueOlder();
+    _u_old = &valueOld();
     _vel = &(_var.dofValuesDot());
     _vel_old = &(_var.dofValuesDotOld());
     _accel = &(_var.dofValuesDotDot());
@@ -99,9 +102,10 @@ NodalTranslationalInertia::NodalTranslationalInertia(const InputParameters & par
       mooseError("NodalTranslationalInertia: The number of columns in ",
                  getParam<FileName>("nodal_mass_file"),
                  " should be 4.");
-
+    std::cout << Moose::stringify(data) << std::endl;
     unsigned int node_found = 0;
     const std::set<BoundaryID> bnd_ids = BoundaryRestrictable::boundaryIDs();
+    std::cout << Moose::stringify(bnd_ids) << std::endl;
     for (auto & bnd_id : bnd_ids)
     {
       const std::vector<dof_id_type> & bnd_node_set = _mesh.getNodeList(bnd_id);
@@ -152,7 +156,6 @@ NodalTranslationalInertia::computeQpResidual()
         mooseError("NodalTranslationalInertia: Unable to find an entry for the current node in the "
                    "_node_id_to_mass map.");
     }
-
     if (isParamValid("beta"))
     {
       mooseAssert(_beta > 0.0, "NodalTranslationalInertia: Beta parameter should be positive.");
@@ -168,8 +171,10 @@ NodalTranslationalInertia::computeQpResidual()
       const Real vel = vel_old + (_dt * (1 - _gamma)) * accel_old + _gamma * _dt * accel;
       return mass * (accel + vel * _eta * (1 + _alpha) - _alpha * _eta * vel_old);
     }
+    else if (getParam<bool>("central_difference"))
+        return mass * ((*_u_older)[_qp] - (*_u_old)[_qp]) / (_dt * _dt);
     else
-      return mass * ((*_accel)[_qp] + (*_vel)[_qp] * _eta * (1.0 + _alpha) -
+        return mass * ((*_accel)[_qp] + (*_vel)[_qp] * _eta * (1.0 + _alpha) -
                      _alpha * _eta * (*_vel_old)[_qp]);
   }
 }
