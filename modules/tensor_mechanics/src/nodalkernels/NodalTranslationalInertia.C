@@ -102,10 +102,8 @@ NodalTranslationalInertia::NodalTranslationalInertia(const InputParameters & par
       mooseError("NodalTranslationalInertia: The number of columns in ",
                  getParam<FileName>("nodal_mass_file"),
                  " should be 4.");
-    std::cout << Moose::stringify(data) << std::endl;
     unsigned int node_found = 0;
     const std::set<BoundaryID> bnd_ids = BoundaryRestrictable::boundaryIDs();
-    std::cout << Moose::stringify(bnd_ids) << std::endl;
     for (auto & bnd_id : bnd_ids)
     {
       const std::vector<dof_id_type> & bnd_node_set = _mesh.getNodeList(bnd_id);
