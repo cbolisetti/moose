@@ -196,8 +196,6 @@ protected:
   NumericVector<Number> & _serialized_solution;
   /// Solution vector of the previous nonlinear iterate
   NumericVector<Number> * _solution_previous_nl;
-  /// Time integrator
-  std::shared_ptr<TimeIntegrator> _time_integrator;
   /// solution vector for u^dot
   NumericVector<Number> * _u_dot;
   /// solution vector for u^dotdot

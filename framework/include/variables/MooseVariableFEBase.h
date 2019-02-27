@@ -194,18 +194,42 @@ public:
    * Returns time derivative of degrees of freedom
    */
   virtual const MooseArray<Number> & dofValuesDot() = 0;
+
+  /**
+   * Returns the residual corresponding to the time derivative of degrees of freedom
+   */
+  virtual const MooseArray<Number> & dofValuesDotResidual() = 0;
+
   /**
    * Returns time derivative of neighboring degrees of freedom
    */
   virtual const MooseArray<Number> & dofValuesDotNeighbor() = 0;
+
+  /**
+   * Returns the residual corresponding to the time derivative of degrees of freedom
+   */
+  virtual const MooseArray<Number> & dofValuesDotNeighborResidual() = 0;
+
   /**
    * Returns second time derivative of degrees of freedom
    */
   virtual const MooseArray<Number> & dofValuesDotDot() = 0;
+
+  /**
+   * Returns the residual corresponding to the second time derivative of degrees of freedom
+   */
+  virtual const MooseArray<Number> & dofValuesDotDotResidual() = 0;
+
   /**
    * Returns second time derivative of neighboring degrees of freedom
    */
   virtual const MooseArray<Number> & dofValuesDotDotNeighbor() = 0;
+
+  /**
+   * Returns the residual corresponding to the second time derivative of degrees of freedom
+   */
+  virtual const MooseArray<Number> & dofValuesDotDotNeighborResidual() = 0;
+
   /**
    * Returns old time derivative of degrees of freedom
    */

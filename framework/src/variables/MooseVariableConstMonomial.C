@@ -11,6 +11,7 @@
 #include "SubProblem.h"
 #include "SystemBase.h"
 #include "Assembly.h"
+#include "TimeIntegrator.h"
 
 #include "libmesh/quadrature.h"
 
@@ -22,6 +23,7 @@ MooseVariableConstMonomial::MooseVariableConstMonomial(unsigned int var_num,
                                                        THREAD_ID tid)
   : MooseVariable(var_num, fe_type, sys, assembly, var_kind, tid)
 {
+  _time_integrator = _sys.getTimeIntegrator();
 }
 
 void
@@ -49,8 +51,14 @@ MooseVariableConstMonomial::computeMonomialValuesHelper(const unsigned & nqp, co
     if (_need_u_dot)
       _u_dot.resize(nqp);
 
+    if (_need_u_dot_residual)
+      _u_dot_residual.resize(nqp);
+
     if (_need_u_dotdot)
       _u_dotdot.resize(nqp);
+
+    if (_need_u_dotdot_residual)
+      _u_dotdot_residual.resize(nqp);
 
     if (_need_u_dot_old)
       _u_dot_old.resize(nqp);
@@ -97,8 +105,12 @@ MooseVariableConstMonomial::computeMonomialValuesHelper(const unsigned & nqp, co
       _dof_values_older.resize(1);
     if (_need_dof_values_dot)
       _dof_values_dot.resize(1);
+    if (_need_dof_values_dot_residual)
+      _dof_values_dot_residual.resize(1);
     if (_need_dof_values_dotdot)
       _dof_values_dotdot.resize(1);
+    if (_need_dof_values_dotdot_residual)
+      _dof_values_dotdot_residual.resize(1);
     if (_need_dof_values_dot_old)
       _dof_values_dot_old.resize(1);
     if (_need_dof_values_dotdot_old)
@@ -111,7 +123,9 @@ MooseVariableConstMonomial::computeMonomialValuesHelper(const unsigned & nqp, co
   Real soln_older = 0;
   Real soln_previous_nl = 0;
   Real u_dot = 0;
+  Real u_dot_residual = 0;
   Real u_dotdot = 0;
+  Real u_dotdot_residual = 0;
   Real u_dot_old = 0;
   Real u_dotdot_old = 0;
   const Real & du_dot_du = _sys.duDotDu();
@@ -142,9 +156,16 @@ MooseVariableConstMonomial::computeMonomialValuesHelper(const unsigned & nqp, co
       _dof_values_older[0] = soln_older;
 
     if (_sys.solutionUDot())
+    {
       u_dot = (*_sys.solutionUDot())(idx);
+      u_dot_residual = (_time_integrator->computeUDotResidual())(idx);
+    }
+
     if (_sys.solutionUDotDot())
+    {
       u_dotdot = (*_sys.solutionUDotDot())(idx);
+      u_dotdot_residual = (_time_integrator->computeUDotDotResidual())(idx);
+    }
     if (_sys.solutionUDotOld())
       u_dot_old = (*_sys.solutionUDotOld())(idx);
     if (_sys.solutionUDotDotOld())
@@ -167,8 +188,14 @@ MooseVariableConstMonomial::computeMonomialValuesHelper(const unsigned & nqp, co
     if (_need_u_dot)
       _u_dot[0] = phi * u_dot;
 
+    if (_need_u_dot_residual)
+      _u_dot_residual[0] = phi * u_dot_residual;
+
     if (_need_u_dotdot)
       _u_dotdot[0] = phi * u_dotdot;
+
+    if (_need_u_dotdot_residual)
+      _u_dotdot_residual[0] = phi * u_dotdot_residual;
 
     if (_need_u_dot_old)
       _u_dot_old[0] = phi * u_dot_old;
@@ -201,8 +228,14 @@ MooseVariableConstMonomial::computeMonomialValuesHelper(const unsigned & nqp, co
       if (_need_u_dot)
         _u_dot[qp] = _u_dot[0];
 
+      if (_need_u_dot_residual)
+          _u_dot_residual[qp] = _u_dot_residual[0];
+
       if (_need_u_dotdot)
         _u_dotdot[qp] = _u_dotdot[0];
+
+      if (_need_u_dotdot_residual)
+        _u_dotdot_residual[qp] = _u_dotdot_residual[0];
 
       if (_need_u_dot_old)
         _u_dot_old[qp] = _u_dot_old[0];
@@ -242,8 +275,14 @@ MooseVariableConstMonomial::computeMonomialNeighborValuesHelper(const unsigned &
     if (_need_u_dot_neighbor)
       _u_dot_neighbor.resize(nqp);
 
+    if (_need_u_dot_neighbor_residual)
+      _u_dot_neighbor_residual.resize(nqp);
+
     if (_need_u_dotdot_neighbor)
       _u_dotdot_neighbor.resize(nqp);
+
+    if (_need_u_dotdot_neighbor_residual)
+      _u_dotdot_neighbor_residual.resize(nqp);
 
     if (_need_u_dot_old_neighbor)
       _u_dot_old_neighbor.resize(nqp);
@@ -299,7 +338,9 @@ MooseVariableConstMonomial::computeMonomialNeighborValuesHelper(const unsigned &
   Real soln_old = 0;
   Real soln_older = 0;
   Real u_dot = 0;
+  Real u_dot_residual = 0;
   Real u_dotdot = 0;
+  Real u_dotdot_residual = 0;
   Real u_dot_old = 0;
   Real u_dotdot_old = 0;
   const Real & du_dot_du = _sys.duDotDu();
@@ -324,9 +365,15 @@ MooseVariableConstMonomial::computeMonomialNeighborValuesHelper(const unsigned &
       _dof_values_older_neighbor[0] = soln_older;
 
     if (_sys.solutionUDot())
+    {
       u_dot = (*_sys.solutionUDot())(idx);
+      u_dot_residual = (_time_integrator->computeUDotResidual())(idx);
+    }
     if (_sys.solutionUDotDot())
+    {
       u_dotdot = (*_sys.solutionUDotDot())(idx);
+      u_dotdot_residual = (_time_integrator->computeUDotDotResidual())(idx);
+    }
     if (_sys.solutionUDotOld())
       u_dot_old = (*_sys.solutionUDotOld())(idx);
     if (_sys.solutionUDotDotOld())
@@ -352,8 +399,14 @@ MooseVariableConstMonomial::computeMonomialNeighborValuesHelper(const unsigned &
     if (_need_u_dot_neighbor)
       _u_dot_neighbor[0] = phi * u_dot;
 
+    if (_need_u_dot_neighbor_residual)
+      _u_dot_neighbor_residual[0] = phi * u_dot_residual;
+
     if (_need_u_dotdot_neighbor)
       _u_dotdot_neighbor[0] = phi * u_dotdot;
+
+    if (_need_u_dotdot_neighbor_residual)
+      _u_dotdot_neighbor_residual[0] = phi * u_dotdot_residual;
 
     if (_need_u_dot_old_neighbor)
       _u_dot_old_neighbor[0] = phi * u_dot_old;
@@ -383,8 +436,14 @@ MooseVariableConstMonomial::computeMonomialNeighborValuesHelper(const unsigned &
       if (_need_u_dot_neighbor)
         _u_dot_neighbor[qp] = _u_dot_neighbor[0];
 
+      if (_need_u_dot_neighbor_residual)
+        _u_dot_neighbor_residual[qp] = _u_dot_neighbor_residual[0];
+
       if (_need_u_dotdot_neighbor)
         _u_dotdot_neighbor[qp] = _u_dotdot_neighbor[0];
+
+      if (_need_u_dotdot_neighbor_residual)
+        _u_dotdot_neighbor_residual[qp] = _u_dotdot_neighbor_residual[0];
 
       if (_need_u_dot_old_neighbor)
         _u_dot_old_neighbor[qp] = _u_dot_old_neighbor[0];

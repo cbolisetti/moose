@@ -375,12 +375,37 @@ public:
                  "uDotRequested() to true in FEProblemBase before requesting `u_dot`.");
   }
 
+  const FieldVariableValue & uDotResidual()
+  {
+    if (_sys.solutionUDot())
+    {
+      _need_u_dot_residual = true;
+      return _u_dot_residual;
+    }
+    else
+      mooseError("MooseVariableFE: Time derivative of solution (`u_dot`) is not stored. Please set "
+                 "uDotRequested() to true in FEProblemBase before requesting `u_dot`.");
+  }
+
   const FieldVariableValue & uDotDot()
   {
     if (_sys.solutionUDotDot())
     {
       _need_u_dotdot = true;
       return _u_dotdot;
+    }
+    else
+      mooseError("MooseVariableFE: Second time derivative of solution (`u_dotdot`) is not stored. "
+                 "Please set uDotDotRequested() to true in FEProblemBase before requesting "
+                 "`u_dotdot`.");
+  }
+
+  const FieldVariableValue & uDotDotResidual()
+  {
+    if (_sys.solutionUDotDot())
+    {
+      _need_u_dotdot_residual = true;
+      return _u_dotdot_residual;
     }
     else
       mooseError("MooseVariableFE: Second time derivative of solution (`u_dotdot`) is not stored. "
@@ -544,12 +569,37 @@ public:
                  "uDotRequested() to true in FEProblemBase before requesting `u_dot`.");
   }
 
+  const FieldVariableValue & uDotNeighborResidual()
+  {
+    if (_sys.solutionUDot())
+    {
+      _need_u_dot_neighbor_residual = true;
+      return _u_dot_neighbor_residual;
+    }
+    else
+      mooseError("MooseVariableFE: Time derivative of solution (`u_dot`) is not stored. Please set "
+                 "uDotRequested() to true in FEProblemBase before requesting `u_dot`.");
+  }
+
   const FieldVariableValue & uDotDotNeighbor()
   {
     if (_sys.solutionUDotDot())
     {
       _need_u_dotdot_neighbor = true;
       return _u_dotdot_neighbor;
+    }
+    else
+      mooseError("MooseVariableFE: Second time derivative of solution (`u_dotdot`) is not stored. "
+                 "Please set uDotDotRequested() to true in FEProblemBase before requesting "
+                 "`u_dotdot`");
+  }
+
+  const FieldVariableValue & uDotDotNeighborResidual()
+  {
+    if (_sys.solutionUDotDot())
+    {
+      _need_u_dotdot_neighbor_residual = true;
+      return _u_dotdot_neighbor_residual;
     }
     else
       mooseError("MooseVariableFE: Second time derivative of solution (`u_dotdot`) is not stored. "
@@ -644,11 +694,15 @@ public:
   const MooseArray<Number> & dofValuesOlderNeighbor() override;
   const MooseArray<Number> & dofValuesPreviousNLNeighbor() override;
   const MooseArray<Number> & dofValuesDot() override;
+  const MooseArray<Number> & dofValuesDotResidual() override;
   const MooseArray<Number> & dofValuesDotNeighbor() override;
+  const MooseArray<Number> & dofValuesDotNeighborResidual() override;
   const MooseArray<Number> & dofValuesDotOld() override;
   const MooseArray<Number> & dofValuesDotOldNeighbor() override;
   const MooseArray<Number> & dofValuesDotDot() override;
+  const MooseArray<Number> & dofValuesDotDotResidual() override;
   const MooseArray<Number> & dofValuesDotDotNeighbor() override;
+  const MooseArray<Number> & dofValuesDotDotNeighborResidual() override;
   const MooseArray<Number> & dofValuesDotDotOld() override;
   const MooseArray<Number> & dofValuesDotDotOldNeighbor() override;
   const MooseArray<Number> & dofValuesDuDotDu() override;
@@ -716,7 +770,9 @@ public:
   const OutputType & nodalValueOlder();
   const OutputType & nodalValuePreviousNL();
   const OutputType & nodalValueDot();
+  const OutputType & nodalValueDotResidual();
   const OutputType & nodalValueDotDot();
+  const OutputType & nodalValueDotDotResidual();
   const OutputType & nodalValueDotOld();
   const OutputType & nodalValueDotDotOld();
   const OutputType & nodalValueDuDotDu();
@@ -726,7 +782,9 @@ public:
   const OutputType & nodalValueOlderNeighbor();
   const OutputType & nodalValuePreviousNLNeighbor();
   const OutputType & nodalValueDotNeighbor();
+  const OutputType & nodalValueDotNeighborResidual();
   const OutputType & nodalValueDotDotNeighbor();
+  const OutputType & nodalValueDotDotNeighborResidual();
   const OutputType & nodalValueDotOldNeighbor();
   const OutputType & nodalValueDotDotOldNeighbor();
   const OutputType & nodalValueDuDotDuNeighbor();
@@ -766,8 +824,10 @@ public:
   void assignNodalValueOlder(const Real & value, const unsigned int & component);
   void assignNodalValuePreviousNL(const Real & value, const unsigned int & component);
   void assignNodalValueDot(const Real & value, const unsigned int & component);
+  void assignNodalValueDotResidual(const Real & value, const unsigned int & component);
   void assignNodalValueDotOld(const Real & value, const unsigned int & component);
   void assignNodalValueDotDot(const Real & value, const unsigned int & component);
+  void assignNodalValueDotDotResidual(const Real & value, const unsigned int & component);
   void assignNodalValueDotDotOld(const Real & value, const unsigned int & component);
   void assignNeighborNodalValue(const Real & value, const unsigned int & component);
   void assignNeighborNodalValueOld(const Real & value, const unsigned int & component);
@@ -804,7 +864,9 @@ protected:
   bool _need_u_previous_nl;
 
   bool _need_u_dot;
+  bool _need_u_dot_residual;
   bool _need_u_dotdot;
+  bool _need_u_dotdot_residual;
   bool _need_u_dot_old;
   bool _need_u_dotdot_old;
   bool _need_du_dot_du;
@@ -839,7 +901,9 @@ protected:
   bool _need_u_previous_nl_neighbor;
 
   bool _need_u_dot_neighbor;
+  bool _need_u_dot_neighbor_residual;
   bool _need_u_dotdot_neighbor;
+  bool _need_u_dotdot_neighbor_residual;
   bool _need_u_dot_old_neighbor;
   bool _need_u_dotdot_old_neighbor;
   bool _need_du_dot_du_neighbor;
@@ -865,7 +929,9 @@ protected:
   bool _need_dof_values_older;
   bool _need_dof_values_previous_nl;
   bool _need_dof_values_dot;
+  bool _need_dof_values_dot_residual;
   bool _need_dof_values_dotdot;
+  bool _need_dof_values_dotdot_residual;
   bool _need_dof_values_dot_old;
   bool _need_dof_values_dotdot_old;
   bool _need_dof_du_dot_du;
@@ -875,7 +941,9 @@ protected:
   bool _need_dof_values_older_neighbor;
   bool _need_dof_values_previous_nl_neighbor;
   bool _need_dof_values_dot_neighbor;
+  bool _need_dof_values_dot_neighbor_residual;
   bool _need_dof_values_dotdot_neighbor;
+  bool _need_dof_values_dotdot_neighbor_residual;
   bool _need_dof_values_dot_old_neighbor;
   bool _need_dof_values_dotdot_old_neighbor;
   bool _need_dof_du_dot_du_neighbor;
@@ -918,8 +986,12 @@ protected:
 
   /// nodal values of u_dot
   MooseArray<Real> _dof_values_dot;
+  /// nodal values of u_dot_residual
+  MooseArray<Real> _dof_values_dot_residual;
   /// nodal values of u_dotdot
   MooseArray<Real> _dof_values_dotdot;
+  /// nodal values of u_dotdot_residual
+  MooseArray<Real> _dof_values_dotdot_residual;
   /// nodal values of u_dot_old
   MooseArray<Real> _dof_values_dot_old;
   /// nodal values of u_dotdot_old
@@ -934,7 +1006,9 @@ protected:
   MooseArray<Real> _dof_values_older_neighbor;
   MooseArray<Real> _dof_values_previous_nl_neighbor;
   MooseArray<Real> _dof_values_dot_neighbor;
+  MooseArray<Real> _dof_values_dot_neighbor_residual;
   MooseArray<Real> _dof_values_dotdot_neighbor;
+  MooseArray<Real> _dof_values_dotdot_neighbor_residual;
   MooseArray<Real> _dof_values_dot_old_neighbor;
   MooseArray<Real> _dof_values_dotdot_old_neighbor;
   MooseArray<Real> _dof_du_dot_du_neighbor;
@@ -1027,10 +1101,14 @@ protected:
   /// u_dot (time derivative)
   FieldVariableValue _u_dot;
   FieldVariableValue _u_dot_neighbor;
+  FieldVariableValue _u_dot_residual;
+  FieldVariableValue _u_dot_neighbor_residual;
 
   /// u_dotdot (second time derivative)
   FieldVariableValue _u_dotdot, _u_dotdot_bak;
   FieldVariableValue _u_dotdot_neighbor, _u_dotdot_bak_neighbor;
+  FieldVariableValue _u_dotdot_residual, _u_dotdot_bak_residual;
+  FieldVariableValue _u_dotdot_neighbor_residual, _u_dotdot_bak_neighbor_residual;
 
   /// u_dot_old (time derivative)
   FieldVariableValue _u_dot_old, _u_dot_old_bak;
@@ -1066,8 +1144,12 @@ protected:
 
   /// nodal values of u_dot
   OutputType _nodal_value_dot;
+  /// nodal values of u_dot_residual
+  OutputType _nodal_value_dot_residual;
   /// nodal values of u_dotdot
   OutputType _nodal_value_dotdot;
+  /// nodal values of u_dotdot_residual
+  OutputType _nodal_value_dotdot_residual;
   /// nodal values of u_dot_old
   OutputType _nodal_value_dot_old;
   /// nodal values of u_dotdot_old

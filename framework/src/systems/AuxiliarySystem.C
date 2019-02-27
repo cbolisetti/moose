@@ -183,7 +183,8 @@ AuxiliarySystem::addTimeIntegrator(const std::string & type,
                                    InputParameters parameters)
 {
   parameters.set<SystemBase *>("_sys") = this;
-  _time_integrator = _factory.create<TimeIntegrator>(type, name, parameters);
+  std::shared_ptr<TimeIntegrator> ti = _factory.create<TimeIntegrator>(type, name, parameters);
+  _time_integrator = ti;
 }
 
 void
