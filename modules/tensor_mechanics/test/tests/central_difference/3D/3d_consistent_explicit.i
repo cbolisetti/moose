@@ -30,38 +30,35 @@
   [./inertia_x]
     type = InertialForce
     variable = disp_x
-    central_difference = true
   [../]
   [./inertia_y]
     type = InertialForce
     variable = disp_y
-    central_difference = true
   [../]
   [./inertia_z]
     type = InertialForce
     variable = disp_z
-    central_difference = true
   [../]
 []
 
 [BCs]
-  [./y_bot]
-    type = DirichletBC
-    variable = disp_y
-    boundary = back
-    value = 0.0
-  [../]
-  [./z_bot]
-    type = DirichletBC
-    variable = disp_z
-    boundary = back
-    value = 0.0
-  [../]
   [./x_bot]
     type = FunctionDirichletBC
     boundary = 'back'
     variable = disp_x
-    function = disp
+    function = dispx
+  [../]
+  [./y_bot]
+    type = FunctionDirichletBC
+    variable = disp_y
+    boundary = back
+    function = dispy
+  [../]
+  [./z_bot]
+    type = FunctionDirichletBC
+    variable = disp_z
+    boundary = back
+    function = dispz
   [../]
   [./Periodic]
     [./x_dir]
@@ -80,10 +77,18 @@
 []
 
 [Functions]
-  [./disp]
+  [./dispx]
     type = PiecewiseLinear
     x = '0.0 1.0 2.0 3.0 4.0' # time
     y = '0.0 1.0 0.0 -1.0 0.0'  # displacement
+  [../]
+  [./dispy]
+    type = ParsedFunction
+    value = 0.1*t*t*sin(10*t)
+  [../]
+  [./dispz]
+    type = ParsedFunction
+    value = 0.1*t*t*sin(20*t)
   [../]
 []
 
@@ -98,7 +103,7 @@
     type = ComputeIncrementalSmallStrain
     block = 0
     displacements = 'disp_x disp_y disp_z'
-    central_difference = true
+    implicit = false
   [../]
   [./stress_block]
     type = ComputeFiniteStrainElasticStress
@@ -154,4 +159,5 @@
   exodus = false
   csv = true
   perf_graph = true
+  interval = 100
 []

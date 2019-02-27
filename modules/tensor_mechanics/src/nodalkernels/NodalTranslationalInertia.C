@@ -12,6 +12,7 @@
 #include "AuxiliarySystem.h"
 #include "MooseUtils.h"
 #include "DelimitedFileReader.h"
+#include "TimeIntegrator.h"
 
 registerMooseObject("TensorMechanicsApp", NodalTranslationalInertia);
 
@@ -58,7 +59,8 @@ NodalTranslationalInertia::NodalTranslationalInertia(const InputParameters & par
     _beta(_has_beta ? getParam<Real>("beta") : 0.1),
     _gamma(_has_gamma ? getParam<Real>("gamma") : 0.1),
     _eta(getParam<Real>("eta")),
-    _alpha(getParam<Real>("alpha"))
+    _alpha(getParam<Real>("alpha")),
+    _time_integrator(_sys.getTimeIntegrator())
 {
   if (_has_beta && _has_gamma && _has_velocity && _has_acceleration)
   {
@@ -72,13 +74,11 @@ NodalTranslationalInertia::NodalTranslationalInertia(const InputParameters & par
   }
   else if (!_has_beta && !_has_gamma && !_has_velocity && !_has_acceleration)
   {
-    _u_older = &valueOlder();
-    _u_old = &valueOld();
-    _vel = &(_var.dofValuesDot());
-    _vel_old = &(_var.dofValuesDotOld());
-    _accel = &(_var.dofValuesDotDot());
     _du_dot_du = &(_var.duDotDu());
     _du_dotdot_du = &(_var.duDotDotDu());
+    _u_dot_old = &(_var.dofValuesDotOld());
+    _u_dot_residual = &(_var.dofValuesDotResidual());
+    _u_dotdot_residual = &(_var.dofValuesDotDotResidual());
   }
   else
     mooseError("NodalTranslationalInertia: Either all or none of `beta`, `gamma`, `velocity` and "
@@ -133,6 +133,10 @@ NodalTranslationalInertia::NodalTranslationalInertia(const InputParameters & par
                  node_found,
                  " nodes were found in the boundary.");
   }
+  // Check for Explicit and alpha parameter
+  if (_alpha != 0 && _time_integrator->isExplicit())
+    mooseError("NodalTranslationalInertia: HHT time integration parameter can only be used with "
+               "Newmark-Beta time integrator.");
 }
 
 Real
@@ -169,11 +173,12 @@ NodalTranslationalInertia::computeQpResidual()
       const Real vel = vel_old + (_dt * (1 - _gamma)) * accel_old + _gamma * _dt * accel;
       return mass * (accel + vel * _eta * (1 + _alpha) - _alpha * _eta * vel_old);
     }
-    else if (getParam<bool>("central_difference"))
-        return mass * ((*_u_older)[_qp] - (*_u_old)[_qp]) / (_dt * _dt);
+
     else
-        return mass * ((*_accel)[_qp] + (*_vel)[_qp] * _eta * (1.0 + _alpha) -
-                     _alpha * _eta * (*_vel_old)[_qp]);
+      // all cases (Explicit, implicit and implicit with HHT)
+      // Note that _alpha is enforced to be zero for explicit integration
+      return mass * ((*_u_dotdot_residual)[_qp] + (*_u_dot_residual)[_qp] * _eta * (1.0 + _alpha) -
+                     _alpha * _eta * (*_u_dot_old)[_qp]);
   }
 }
 

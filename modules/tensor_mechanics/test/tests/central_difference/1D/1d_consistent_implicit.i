@@ -84,7 +84,7 @@
   dtmin = 1e-4
   timestep_tolerance = 1e-6
   start_time = -0.005
-  end_time = 8
+  end_time = 4
   dt = 0.001
   [./TimeIntegrator]
     type = NewmarkBeta
@@ -105,4 +105,5 @@
   exodus = false
   csv = true
   perf_graph = false
+  interval = 100
 []

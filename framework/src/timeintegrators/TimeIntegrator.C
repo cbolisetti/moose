@@ -76,8 +76,8 @@ NumericVector<Number> &
 TimeIntegrator::computeUDotResidual() const
 {
   if (!_sys.solutionUDot())
-   mooseError("TimeIntegrator: Time derivative of solution (`u_dot`) is not stored. Please set "
-    "uDotRequested() to true in FEProblemBase befor requesting `u_dot`.");
+    mooseError("TimeIntegrator: Time derivative of solution (`u_dot`) is not stored. Please set "
+               "uDotRequested() to true in FEProblemBase befor requesting `u_dot`.");
 
   return *_sys.solutionUDot();
 }
@@ -86,8 +86,8 @@ NumericVector<Number> &
 TimeIntegrator::computeUDotDotResidual() const
 {
   if (!_sys.solutionUDotDot())
-   mooseError("TimeIntegrator: Time derivative of solution (`u_dotdot`) is not stored. Please set "
-    "uDotDotRequested() to true in FEProblemBase befor requesting `u_dotdot`.");
+    mooseError("TimeIntegrator: Time derivative of solution (`u_dotdot`) is not stored. Please set "
+               "uDotDotRequested() to true in FEProblemBase befor requesting `u_dotdot`.");
 
   return *_sys.solutionUDotDot();
 }

@@ -487,13 +487,15 @@ protected:
    * @return Reference to a VariableValue containing the residual corresponding
    * to the time derivative of the coupled variable
    */
-  virtual const VariableValue & coupledDotResidual(const std::string & var_name, unsigned int comp = 0);
+  virtual const VariableValue & coupledDotResidual(const std::string & var_name,
+                                                   unsigned int comp = 0);
 
   /**
    * Second time derivative of a coupled variable
    * @param var_name Name of coupled variable
    * @param comp Component number for vector of coupled variables
-   * @return Reference to a VariableValue containing the second time derivative of the coupled variable
+   * @return Reference to a VariableValue containing the second time derivative of the coupled
+   * variable
    */
   virtual const VariableValue & coupledDotDot(const std::string & var_name, unsigned int comp = 0);
 
@@ -505,7 +507,8 @@ protected:
    * @ return Reference to a VariableValue containing the residual corresponding
    * to the second time derivative of the coupled variable.
    */
-  virtual const VariableValue & coupledDotDotResidual(const std::string & var_name, unsigned int comp = 0);
+  virtual const VariableValue & coupledDotDotResidual(const std::string & var_name,
+                                                      unsigned int comp = 0);
 
   /**
    * Old time derivative of a coupled variable
@@ -519,7 +522,8 @@ protected:
    * Old second time derivative of a coupled variable
    * @param var_name Name of coupled variable
    * @param comp Component number for vector of coupled variables
-   * @return Reference to a VariableValue containing the old second time derivative of the coupled variable
+   * @return Reference to a VariableValue containing the old second time derivative of the coupled
+   * variable
    */
   virtual const VariableValue & coupledDotDotOld(const std::string & var_name,
                                                  unsigned int comp = 0);
@@ -556,7 +560,7 @@ protected:
   virtual const VectorVariableValue & coupledVectorDot(const std::string & var_name,
                                                        unsigned int comp = 0);
   virtual const VectorVariableValue & coupledVectorDotResidual(const std::string & var_name,
-                                                       unsigned int comp = 0);
+                                                               unsigned int comp = 0);
   /**
    * Second time derivative of a coupled vector variable
    * @param var_name Name of coupled vector variable
@@ -567,7 +571,7 @@ protected:
   virtual const VectorVariableValue & coupledVectorDotDot(const std::string & var_name,
                                                           unsigned int comp = 0);
   virtual const VectorVariableValue & coupledVectorDotDotResidual(const std::string & var_name,
-                                                          unsigned int comp = 0);
+                                                                  unsigned int comp = 0);
   /**
    * Old time derivative of a coupled vector variable
    * @param var_name Name of coupled vector variable
@@ -680,7 +684,7 @@ protected:
   virtual const VariableValue & coupledNodalDotDot(const std::string & var_name,
                                                    unsigned int comp = 0);
   virtual const VariableValue & coupledNodalDotDotResidual(const std::string & var_name,
-                                                    unsigned int comp = 0);
+                                                           unsigned int comp = 0);
   /**
    * Nodal values of old time derivative of a coupled variable
    * @param var_name Name of coupled variable

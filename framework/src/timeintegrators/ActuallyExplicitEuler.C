@@ -16,7 +16,6 @@
 // libMesh includes
 #include "libmesh/sparse_matrix.h"
 #include "libmesh/nonlinear_solver.h"
-#include "libmesh/preconditioner.h"
 #include "libmesh/enum_convergence_flags.h"
 
 registerMooseObject("MooseApp", ActuallyExplicitEuler);
@@ -46,29 +45,23 @@ validParams<ActuallyExplicitEuler>()
 /**
  * Helper class to apply preconditioner
  */
-class LumpedPreconditioner : public Preconditioner<Real>
+LumpedPreconditioner::LumpedPreconditioner(const NumericVector<Real> & diag_inverse)
+  : Preconditioner(diag_inverse.comm()), _diag_inverse(diag_inverse)
 {
-public:
-  LumpedPreconditioner(const NumericVector<Real> & diag_inverse)
-    : Preconditioner(diag_inverse.comm()), _diag_inverse(diag_inverse)
-  {
-  }
+}
 
-  virtual void init() override
-  {
-    // No more initialization needed here
-    _is_initialized = true;
-  }
+void
+LumpedPreconditioner::init()
+{
+  // No more initialization needed here
+  _is_initialized = true;
+}
 
-  virtual void apply(const NumericVector<Real> & x, NumericVector<Real> & y) override
-  {
-    y.pointwise_mult(_diag_inverse, x);
-  }
-
-protected:
-  /// The inverse of the diagonal of the lumped matrix
-  const NumericVector<Real> & _diag_inverse;
-};
+void
+LumpedPreconditioner::apply(const NumericVector<Real> & x, NumericVector<Real> & y)
+{
+  y.pointwise_mult(_diag_inverse, x);
+}
 
 ActuallyExplicitEuler::ActuallyExplicitEuler(const InputParameters & parameters)
   : TimeIntegrator(parameters),

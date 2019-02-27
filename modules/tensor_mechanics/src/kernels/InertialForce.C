@@ -9,6 +9,8 @@
 
 #include "InertialForce.h"
 #include "SubProblem.h"
+#include "TimeIntegrator.h"
+#include "NonlinearSystemBase.h"
 
 registerMooseObject("TensorMechanicsApp", InertialForce);
 
@@ -38,8 +40,6 @@ validParams<InertialForce>()
                         "by HHT time integration scheme");
   params.addParam<MaterialPropertyName>(
       "density", "density", "Name of Material Property that provides the density");
-  params.addParam<bool>("central_difference", false, "Switch for Central Difference time integration.");
-  params.addParam<bool>("lumped", false, "Switch for lumped mass matrix.");
   return params;
 }
 
@@ -54,7 +54,8 @@ InertialForce::InertialForce(const InputParameters & parameters)
     _has_velocity(isParamValid("velocity")),
     _has_acceleration(isParamValid("acceleration")),
     _eta(getMaterialProperty<Real>("eta")),
-    _alpha(getParam<Real>("alpha"))
+    _alpha(getParam<Real>("alpha")),
+    _time_integrator(_sys.getTimeIntegrator())
 {
   if (_has_beta && _has_gamma && _has_velocity && _has_acceleration)
   {
@@ -64,10 +65,8 @@ InertialForce::InertialForce(const InputParameters & parameters)
   }
   else if (!_has_beta && !_has_gamma && !_has_velocity && !_has_acceleration)
   {
-    _u_older = &valueOlder();
-    _u_old = &valueOld();
-    _u_dot = &(_var.uDot());
-    _u_dotdot = &(_var.uDotDot());
+    _u_dot_residual = &(_var.uDotResidual());
+    _u_dotdot_residual = &(_var.uDotDotResidual());
     _u_dot_old = &(_var.uDotOld());
     _du_dot_du = &(_var.duDotDu());
     _du_dotdot_du = &(_var.duDotDotDu());
@@ -75,6 +74,10 @@ InertialForce::InertialForce(const InputParameters & parameters)
   else
     mooseError("InertialForce: Either all or none of `beta`, `gamma`, `velocity`and `acceleration` "
                "should be provided as input.");
+
+  if (_alpha != 0 && _time_integrator->isExplicit())
+    mooseError("InertialForce: HHT time integration parameter can only be used with Newmark-Beta "
+               "time integrator.");
 }
 
 Real
@@ -91,17 +94,24 @@ InertialForce::computeQpResidual()
     return _test[_i][_qp] * _density[_qp] *
            (accel + vel * _eta[_qp] * (1 + _alpha) - _alpha * _eta[_qp] * (*_vel_old)[_qp]);
   }
-  else if (getParam<bool>("central_difference"))
-  {
-    if (getParam<bool>("lumped")) // lumped mass matrix
-      return _test[_i][_qp] * _density[_qp]; // will multiply by (u_older - u_old) after lumping the matrix
-    else //consistent mass matrix
-      return _test[_i][_qp] * _density[_qp] * ((*_u_older)[_qp] - (*_u_old)[_qp]) / (_dt * _dt);
-  }
+
+  else if (_time_integrator->isLumped())
+    // Lumped mass option
+    // Only lumping the matrix here
+    // will multiply by corresponding residual multiplier after lumping the matrix
+    return _test[_i][_qp] * _density[_qp];
+  //
+  // else if (_alpha == 0)
+  //   // no HHT, implicit or explicit
+  //   return _test[_i][_qp] * _density[_qp] * ((*_u_dotdot_residual)[_qp] + (*_u_dot_residual)[_qp]
+  //   * _eta[_qp]);
+
   else
   {
+    // Consistent mass option
+    // Same for explicit, implicit, and implicit with HHT
     return _test[_i][_qp] * _density[_qp] *
-           ((*_u_dotdot)[_qp] + (*_u_dot)[_qp] * _eta[_qp] * (1.0 + _alpha) -
+           ((*_u_dotdot_residual)[_qp] + (*_u_dot_residual)[_qp] * _eta[_qp] * (1.0 + _alpha) -
             _alpha * _eta[_qp] * (*_u_dot_old)[_qp]);
   }
 }
@@ -114,26 +124,30 @@ InertialForce::computeResidual()
   precalculateResidual();
   for (_i = 0; _i < _test.size(); _i++)
     for (_qp = 0; _qp < _qrule->n_points(); _qp++)
-      _local_re(_i) += _JxW[_qp] * _coord[_qp] * computeQpResidual(); // residual is only the lumped mass here for lumped option
+      _local_re(_i) += _JxW[_qp] * _coord[_qp] * computeQpResidual();
+  // in the above line, computeQpResidual only contains the Qp mass when lumped mass option is used
 
   // Residual calculation for lumped-mass matrices for explicit integration
-  if (getParam<bool>("lumped") && getParam<bool>("central_difference"))
+  if (_time_integrator->isLumped() && _time_integrator->isExplicit())
   {
     std::vector<Node *> node;
     node.resize(_test.size());
     for (unsigned int i = 0; i < node.size(); ++i)
       node[i] = _current_elem->get_node(i);
 
-    // Fetch the solution for the two end nodes at time t
+    // Fetch the solution for the nodes in the at time t
     NonlinearSystemBase & nonlinear_sys = _fe_problem.getNonlinearSystemBase();
-    const NumericVector<Number> & sol_old = nonlinear_sys.solutionOld();
-    const NumericVector<Number> & sol_older = nonlinear_sys.solutionOlder();
-    Real u_old, u_older;
+    const NumericVector<Number> & u_dotdot_residual = _time_integrator->computeUDotDotResidual();
+    const NumericVector<Number> & u_dot_residual = _time_integrator->computeUDotResidual();
+    Real u_dot_residual_node, u_dotdot_residual_node;
     for (unsigned int j = 0; j < node.size(); j++)
     {
-      u_old = sol_old(node[j]->dof_number(nonlinear_sys.number(), _var_num, 0));
-      u_older = sol_older(node[j]->dof_number(nonlinear_sys.number(), _var_num, 0));
-      _local_re(j) *= (u_older - u_old) / (_dt *_dt); // multiplying the lumped mass
+      u_dot_residual_node =
+          u_dot_residual(node[j]->dof_number(nonlinear_sys.number(), _var_num, 0));
+      u_dotdot_residual_node =
+          u_dotdot_residual(node[j]->dof_number(nonlinear_sys.number(), _var_num, 0));
+      _local_re(j) *= u_dotdot_residual_node +
+                      _eta[_qp] * u_dot_residual_node; // Calculating the residuals at each node
     }
   }
 
@@ -157,9 +171,9 @@ InertialForce::computeQpJacobian()
            _eta[_qp] * (1 + _alpha) * _test[_i][_qp] * _density[_qp] * _gamma / _beta / _dt *
                _phi[_j][_qp];
   else
-    {
-      return _test[_i][_qp] * _density[_qp] * (*_du_dotdot_du)[_qp] * _phi[_j][_qp] +
+  {
+    return _test[_i][_qp] * _density[_qp] * (*_du_dotdot_du)[_qp] * _phi[_j][_qp] +
            _eta[_qp] * (1 + _alpha) * _test[_i][_qp] * _density[_qp] * (*_du_dot_du)[_qp] *
                _phi[_j][_qp];
-    }
+  }
 }

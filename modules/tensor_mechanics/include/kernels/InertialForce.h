@@ -14,6 +14,7 @@
 
 // Forward Declarations
 class InertialForce;
+class TimeIntegrator;
 
 template <>
 InputParameters validParams<InertialForce>();
@@ -34,7 +35,6 @@ private:
   unsigned int _var_num;
   const MaterialProperty<Real> & _density;
   const VariableValue * _u_old;
-  const VariableValue * _u_older;
   const VariableValue * _vel_old;
   const VariableValue * _accel_old;
   const bool _has_beta;
@@ -47,10 +47,13 @@ private:
   const Real _alpha;
 
   // Velocity and acceleration calculated by time integrator
-  const VariableValue * _u_dot;
-  const VariableValue * _u_dotdot;
+  const VariableValue * _u_dot_residual;
+  const VariableValue * _u_dotdot_residual;
   const VariableValue * _u_dot_old;
   const VariableValue * _du_dot_du;
   const VariableValue * _du_dotdot_du;
+
+  /// A pointer to TimeIntegrator
+  TimeIntegrator * _time_integrator;
 };
 

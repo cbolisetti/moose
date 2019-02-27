@@ -178,4 +178,5 @@
   exodus = false
   csv = true
   perf_graph = false
+  interval = 100
 []
