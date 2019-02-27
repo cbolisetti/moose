@@ -25,12 +25,10 @@
   [./inertia_x]
     type = InertialForce
     variable = disp_x
-    central_difference = true
   [../]
   [./inertia_y]
     type = InertialForce
     variable = disp_y
-    central_difference = true
   [../]
 []
 
@@ -68,7 +66,7 @@
     type = ComputeIncrementalSmallStrain
     block = 0
     displacements = 'disp_x disp_y'
-    central_difference = true
+    implicit = false
   [../]
   [./stress_block]
     type = ComputeFiniteStrainElasticStress
@@ -119,4 +117,5 @@
   exodus = false
   csv = true
   perf_graph = true
+  interval = 100
 []

@@ -22,7 +22,6 @@
   [./inertia_x]
     type = InertialForce
     variable = disp_x
-    central_difference = true
   [../]
 []
 
@@ -64,7 +63,7 @@
     type = ComputeIncrementalSmallStrain
     block = 0
     displacements = 'disp_x'
-    central_difference = true
+    implicit = false
   [../]
   [./stress_block]
     type = ComputeFiniteStrainElasticStress
@@ -81,7 +80,7 @@
 [Executioner]
   type = Transient
   start_time = -0.001
-  end_time = 8
+  end_time = 4
   dt = 0.005
   [./TimeIntegrator]
     type = CentralDifference
@@ -100,4 +99,5 @@
   exodus = false
   csv = true
   perf_graph = false
+  interval = 100
 []

@@ -77,7 +77,7 @@
   [./vel_y]
     type = TestNewmarkTI
     variable = vel_y
-    displacement = disp_x
+    displacement = disp_y
   [../]
   [./accel_z]
     type = TestNewmarkTI
@@ -93,18 +93,6 @@
 []
 
 [BCs]
-  [./y_bot]
-    type = PresetBC
-    variable = disp_y
-    boundary = 'back'
-    value = 0.0
-  [../]
-  [./z_bot]
-    type = PresetBC
-    variable = disp_z
-    boundary = 'back'
-    value = 0.0
-  [../]
   [./x_bot]
     type = PresetDisplacement
     boundary = 'back'
@@ -112,7 +100,25 @@
     beta = 0.25
     velocity = vel_x
     acceleration = accel_x
-    function = disp
+    function = dispx
+  [../]
+  [./y_bot]
+    type = PresetDisplacement
+    boundary = 'back'
+    variable = disp_y
+    beta = 0.25
+    velocity = vel_y
+    acceleration = accel_y
+    function = dispy
+  [../]
+  [./z_bot]
+    type = PresetDisplacement
+    boundary = 'back'
+    variable = disp_z
+    beta = 0.25
+    velocity = vel_z
+    acceleration = accel_z
+    function = dispz
   [../]
   [./Periodic]
     [./x_dir]
@@ -131,10 +137,18 @@
 []
 
 [Functions]
-  [./disp]
+  [./dispx]
     type = PiecewiseLinear
     x = '0.0 1.0 2.0 3.0 4.0' # time
     y = '0.0 1.0 0.0 -1.0 0.0'  # displacement
+  [../]
+  [./dispy]
+    type = ParsedFunction
+    value = 0.1*t*t*sin(10*t)
+  [../]
+  [./dispz]
+    type = ParsedFunction
+    value = 0.1*t*t*sin(20*t)
   [../]
 []
 
@@ -210,4 +224,5 @@
   exodus = false
   csv = true
   perf_graph = true
+  interval = 100
 []
