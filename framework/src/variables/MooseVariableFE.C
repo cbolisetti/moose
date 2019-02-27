@@ -275,9 +275,38 @@ MooseVariableFE<OutputType>::dofValuesDot()
 
 template <typename OutputType>
 const MooseArray<Number> &
+MooseVariableFE<OutputType>::dofValuesDotResidual()
+{
+  if (_sys.solutionUDot())
+  {
+    _need_dof_values_dot_residual = true;
+    return _dof_values_dot_residual;
+  }
+  else
+    mooseError("MooseVariableFE: Time derivative of solution (`u_dot`) is not stored. Please set "
+               "uDotRequested() to true in FEProblemBase before requesting `u_dot`.");
+}
+
+template <typename OutputType>
+const MooseArray<Number> &
 MooseVariableFE<OutputType>::dofValuesDotDot()
 {
   return _element_data->dofValuesDotDot();
+}
+
+template <typename OutputType>
+const MooseArray<Number> &
+MooseVariableFE<OutputType>::dofValuesDotDotResidual()
+{
+  if (_sys.solutionUDotDot())
+  {
+    _need_dof_values_dotdot_residual = true;
+    return _dof_values_dotdot_residual;
+  }
+  else
+    mooseError("MooseVariableFE: Second time derivative of solution (`u_dotdot`) is not stored. "
+               "Please set uDotDotRequested() to true in FEProblemBase before requesting "
+               "`u_dotdot`.");
 }
 
 template <typename OutputType>
@@ -303,9 +332,38 @@ MooseVariableFE<OutputType>::dofValuesDotNeighbor()
 
 template <typename OutputType>
 const MooseArray<Number> &
+MooseVariableFE<OutputType>::dofValuesDotNeighborResidual()
+{
+  if (_sys.solutionUDot())
+  {
+    _need_dof_values_dot_neighbor_residual = true;
+    return _dof_values_dot_neighbor_residual;
+  }
+  else
+    mooseError("MooseVariableFE: Time derivative of solution (`u_dot`) is not stored. Please set "
+               "uDotRequested() to true in FEProblemBase before requesting `u_dot`.");
+}
+
+template <typename OutputType>
+const MooseArray<Number> &
 MooseVariableFE<OutputType>::dofValuesDotDotNeighbor()
 {
   return _neighbor_data->dofValuesDotDot();
+}
+
+template <typename OutputType>
+const MooseArray<Number> &
+MooseVariableFE<OutputType>::dofValuesDotDotNeighborResidual()
+{
+  if (_sys.solutionUDotDot())
+  {
+    _need_dof_values_dotdot_neighbor_residual = true;
+    return _dof_values_dotdot_neighbor_residual;
+  }
+  else
+    mooseError("MooseVariableFE: Second time derivative of solution (`u_dotdot`) is not stored. "
+               "Please set uDotDotRequested() to true in FEProblemBase before requesting "
+               "`u_dotdot`.");
 }
 
 template <typename OutputType>

@@ -11,6 +11,7 @@
 #include "SubProblem.h"
 #include "SystemBase.h"
 #include "Assembly.h"
+#include "TimeIntegrator.h"
 
 #include "libmesh/quadrature.h"
 
@@ -22,6 +23,7 @@ MooseVariableConstMonomial::MooseVariableConstMonomial(unsigned int var_num,
                                                        THREAD_ID tid)
   : MooseVariable(var_num, fe_type, sys, assembly, var_kind, tid)
 {
+  _time_integrator = _sys.getTimeIntegrator();
 }
 
 void

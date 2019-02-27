@@ -30,10 +30,20 @@ public:
 
   virtual void computeTimeDerivatives() override;
 
+  virtual NumericVector<Number> & computeUDotDotResidual() const override;
+
+  virtual NumericVector<Number> & computeUDotResidual() const override;
+
 protected:
 
   /// solution vector for \f$ {du^dotdot}\over{du} \f$
   Real & _du_dotdot_du;
+
+  /// vector storing residual corresponding to the second time derivative
+  NumericVector<Number> & _u_dotdot_residual;
+
+  /// vector storing residual corresponding to the first time derivative
+  NumericVector<Number> & _u_dot_residual;
 };
 
 #endif // CentralDifference_H
