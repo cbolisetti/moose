@@ -90,17 +90,21 @@ InertialForce::computeQpResidual()
     return _test[_i][_qp] * _density[_qp] *
            (accel + vel * _eta[_qp] * (1 + _alpha) - _alpha * _eta[_qp] * (*_vel_old)[_qp]);
   }
+
   else if (_time_integrator->isLumped())
-  {
-    return _test[_i][_qp] * _density[_qp]; //will multiply by (u_older - u_old) after lumping the matrix
-  }
-  else if (_alpha == 0)
-  {
-    return _test[_i][_qp] * _density[_qp] * ((*_u_dotdot_residual)[_qp] + (*_u_dot_residual)[_qp] * _eta[_qp]);
-  }
+    // Lumped mass option
+    // Only lumping the matrix here
+    // will multiply by corresponding residual multiplier after lumping the matrix
+    return _test[_i][_qp] * _density[_qp];
+  //
+  // else if (_alpha == 0)
+  //   // no HHT, implicit or explicit
+  //   return _test[_i][_qp] * _density[_qp] * ((*_u_dotdot_residual)[_qp] + (*_u_dot_residual)[_qp] * _eta[_qp]);
+
   else
   {
-    // HHT only for implicit
+    // Consistent mass option
+    // Same for explicit, implicit, and implicit with HHT
     return _test[_i][_qp] * _density[_qp] *
            ((*_u_dotdot_residual)[_qp] + (*_u_dot_residual)[_qp] * _eta[_qp] * (1.0 + _alpha) -
             _alpha * _eta[_qp] * (*_u_dot_old)[_qp]);
@@ -115,7 +119,8 @@ InertialForce::computeResidual()
   precalculateResidual();
   for (_i = 0; _i < _test.size(); _i++)
     for (_qp = 0; _qp < _qrule->n_points(); _qp++)
-      _local_re(_i) += _JxW[_qp] * _coord[_qp] * computeQpResidual(); // residual is only the lumped mass here for lumped option
+      _local_re(_i) += _JxW[_qp] * _coord[_qp] * computeQpResidual();
+      // in the above line, computeQpResidual only contains the Qp mass when lumped mass option is used
 
   // Residual calculation for lumped-mass matrices for explicit integration
   if (_time_integrator->isLumped() && _time_integrator->isExplicit())
@@ -125,16 +130,16 @@ InertialForce::computeResidual()
     for (unsigned int i = 0; i < node.size(); ++i)
       node[i] = _current_elem->get_node(i);
 
-    // Fetch the solution for the two end nodes at time t
+    // Fetch the solution for the nodes in the at time t
     NonlinearSystemBase & nonlinear_sys = _fe_problem.getNonlinearSystemBase();
     const NumericVector<Number> & u_dotdot_residual = _time_integrator->computeUDotDotResidual();
     const NumericVector<Number> & u_dot_residual = _time_integrator->computeUDotResidual();
-    Real u_dot, u_dotdot;
+    Real u_dot_residual_node, u_dotdot_residual_node;
     for (unsigned int j = 0; j < node.size(); j++)
     {
-      u_dot = u_dot_residual(node[j]->dof_number(nonlinear_sys.number(), _var_num, 0));
-      u_dotdot = u_dotdot_residual(node[j]->dof_number(nonlinear_sys.number(), _var_num, 0));
-      _local_re(j) *= u_dotdot + _eta[_qp] * u_dot; // multiplying the lumped mass
+      u_dot_residual_node = u_dot_residual(node[j]->dof_number(nonlinear_sys.number(), _var_num, 0));
+      u_dotdot_residual_node = u_dotdot_residual(node[j]->dof_number(nonlinear_sys.number(), _var_num, 0));
+      _local_re(j) *= u_dotdot_residual_node + _eta[_qp] * u_dot_residual_node; // Calculating the residuals at each node
     }
   }
 
