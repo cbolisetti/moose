@@ -12,6 +12,7 @@
 #include "NonlinearSystem.h"
 #include "AuxiliarySystem.h"
 #include "MooseMesh.h"
+#include "TimeIntegrator.h"
 
 registerMooseObject("TensorMechanicsApp", InertialForceBeam);
 
@@ -93,7 +94,8 @@ InertialForceBeam::InertialForceBeam(const InputParameters & parameters)
     _original_length(getMaterialPropertyByName<Real>("original_length")),
     _component(getParam<unsigned int>("component")),
     _local_force(2),
-    _local_moment(2)
+    _local_moment(2),
+    _time_integrator(_sys.getTimeIntegrator())
 {
   // Checking for consistency between the length of the provided rotations and displacements vector
   if (_ndisp != _nrot)
@@ -150,6 +152,10 @@ InertialForceBeam::InertialForceBeam(const InputParameters & parameters)
     MooseVariable * rot_variable = getVar("rotations", i);
     _rot_num[i] = rot_variable->number();
   }
+
+  // Check for explicit and alpha
+  if (_alpha != 0 && _time_integrator->isExplicit())
+    mooseError("InertialForce: HHT time integration parameter can only be used with Newmark-Beta time integrator.");
 }
 
 void
@@ -208,101 +214,119 @@ InertialForceBeam::computeResidual()
         const Real rot_accel_old_1 =
             aux_sol_old(node[1]->dof_number(aux.number(), _rot_accel_num[i], 0));
 
-        _accel_0(i) =
+        // Note that for Newmark-Beta implicit integration that is used here,
+        // u_dot_residual is the same as current velocity, and
+        // u_dot_residual is the same as the current acceleration
+        // The assignments below are made accordingly.
+        _u_dotdot_residual_trans_0(i) =
             1. / _beta * (disp_0 / (_dt * _dt) - _vel_old_0(i) / _dt - accel_old_0 * (0.5 - _beta));
-        _accel_1(i) =
+        _u_dotdot_residual_trans_1(i) =
             1. / _beta * (disp_1 / (_dt * _dt) - _vel_old_1(i) / _dt - accel_old_1 * (0.5 - _beta));
-        _rot_accel_0(i) =
+        _u_dotdot_residual_rot_0(i) =
             1. / _beta *
             (rot_0 / (_dt * _dt) - _rot_vel_old_0(i) / _dt - rot_accel_old_0 * (0.5 - _beta));
-        _rot_accel_1(i) =
+        _u_dotdot_residual_rot_1(i) =
             1. / _beta *
             (rot_1 / (_dt * _dt) - _rot_vel_old_1(i) / _dt - rot_accel_old_1 * (0.5 - _beta));
 
-        _vel_0(i) = _vel_old_0(i) + (_dt * (1 - _gamma)) * accel_old_0 + _gamma * _dt * _accel_0(i);
-        _vel_1(i) = _vel_old_1(i) + (_dt * (1 - _gamma)) * accel_old_1 + _gamma * _dt * _accel_1(i);
-        _rot_vel_0(i) = _rot_vel_old_0(i) + (_dt * (1 - _gamma)) * rot_accel_old_0 +
-                        _gamma * _dt * _rot_accel_0(i);
-        _rot_vel_1(i) = _rot_vel_old_1(i) + (_dt * (1 - _gamma)) * rot_accel_old_1 +
-                        _gamma * _dt * _rot_accel_1(i);
+        _u_dot_residual_trans_0(i) = _vel_old_0(i) + (_dt * (1 - _gamma)) * accel_old_0 + _gamma * _dt * _u_dotdot_residual_trans_0(i);
+        _u_dot_residual_trans_1(i) = _vel_old_1(i) + (_dt * (1 - _gamma)) * accel_old_1 + _gamma * _dt * _u_dotdot_residual_trans_1(i);
+        _u_dot_residual_rot_0(i) = _rot_vel_old_0(i) + (_dt * (1 - _gamma)) * rot_accel_old_0 +
+                        _gamma * _dt * _u_dotdot_residual_rot_0(i);
+        _u_dot_residual_rot_1(i) = _rot_vel_old_1(i) + (_dt * (1 - _gamma)) * rot_accel_old_1 +
+                        _gamma * _dt * _u_dotdot_residual_rot_1(i);
       }
     }
     else
     {
-      if (!nonlinear_sys.solutionUDot())
-        mooseError("InertialForceBeam: Time derivative of solution (`u_dot`) is not stored. Please "
-                   "set uDotRequested() to true in FEProblemBase before requesting `u_dot`.");
-
       if (!nonlinear_sys.solutionUDotOld())
         mooseError("InertialForceBeam: Old time derivative of solution (`u_dot_old`) is not "
                    "stored. Please set uDotOldRequested() to true in FEProblemBase before "
                    "requesting `u_dot_old`.");
 
-      if (!nonlinear_sys.solutionUDotDot())
-        mooseError("InertialForceBeam: Second time derivative of solution (`u_dotdot`) is not "
-                   "stored. Please set uDotDotRequested() to true in FEProblemBase before "
-                   "requesting `u_dotdot`.");
-
-      const NumericVector<Number> & vel = *nonlinear_sys.solutionUDot();
       const NumericVector<Number> & vel_old = *nonlinear_sys.solutionUDotOld();
-      const NumericVector<Number> & accel = *nonlinear_sys.solutionUDotDot();
+      const NumericVector<Number> & u_dotdot_residual = _time_integrator->computeUDotDotResidual();
+      const NumericVector<Number> & u_dot_residual = _time_integrator->computeUDotResidual();
 
       for (unsigned int i = 0; i < _ndisp; ++i)
       {
         // translational velocities and accelerations
         unsigned int dof_index_0 = node[0]->dof_number(nonlinear_sys.number(), _disp_num[i], 0);
         unsigned int dof_index_1 = node[1]->dof_number(nonlinear_sys.number(), _disp_num[i], 0);
-        _vel_0(i) = vel(dof_index_0);
-        _vel_1(i) = vel(dof_index_1);
         _vel_old_0(i) = vel_old(dof_index_0);
         _vel_old_1(i) = vel_old(dof_index_1);
-        _accel_0(i) = accel(dof_index_0);
-        _accel_1(i) = accel(dof_index_1);
+
+        // Calculating translational udot and udotdot residuals
+        _u_dotdot_residual_trans_0(i) = u_dotdot_residual(dof_index_0);
+        _u_dotdot_residual_trans_1(i) = u_dotdot_residual(dof_index_1);
+        _u_dot_residual_trans_0(i) = u_dot_residual(dof_index_0);
+        _u_dot_residual_trans_1(i) = u_dot_residual(dof_index_1);
 
         // rotational velocities and accelerations
         dof_index_0 = node[0]->dof_number(nonlinear_sys.number(), _rot_num[i], 0);
         dof_index_1 = node[1]->dof_number(nonlinear_sys.number(), _rot_num[i], 0);
-        _rot_vel_0(i) = vel(dof_index_0);
-        _rot_vel_1(i) = vel(dof_index_1);
+
         _rot_vel_old_0(i) = vel_old(dof_index_0);
         _rot_vel_old_1(i) = vel_old(dof_index_1);
-        _rot_accel_0(i) = accel(dof_index_0);
-        _rot_accel_1(i) = accel(dof_index_1);
+
+        // Calculating rotational udot and udotdot residuals in global system
+        _u_dotdot_residual_rot_0(i) = u_dotdot_residual(dof_index_0);
+        _u_dotdot_residual_rot_1(i) = u_dotdot_residual(dof_index_1);
+        _u_dot_residual_rot_0(i) = u_dot_residual(dof_index_0);
+        _u_dot_residual_rot_1(i) = u_dot_residual(dof_index_1);
       }
     }
 
-    // transform translational and rotational velocities and accelerations to the initial local
-    // configuration of the beam
+    // transform translational and rotational udot and udotdot residuals, and
+    // translational and rotational old velocities
+    // from global to local system
     _local_vel_old_0 = _original_local_config[0] * _vel_old_0;
     _local_vel_old_1 = _original_local_config[0] * _vel_old_1;
-    _local_vel_0 = _original_local_config[0] * _vel_0;
-    _local_vel_1 = _original_local_config[0] * _vel_1;
-    _local_accel_0 = _original_local_config[0] * _accel_0;
-    _local_accel_1 = _original_local_config[0] * _accel_1;
+    _u_dotdot_residual_trans_0 = _original_local_config[0] * _u_dotdot_residual_trans_0;
+    _u_dot_residual_trans_0 = _original_local_config[0] * _u_dot_residual_trans_0;
+    _u_dotdot_residual_trans_1 = _original_local_config[0] * _u_dotdot_residual_trans_1;
+    _u_dot_residual_trans_1 = _original_local_config[0] * _u_dot_residual_trans_1;
 
     _local_rot_vel_old_0 = _original_local_config[0] * _rot_vel_old_0;
     _local_rot_vel_old_1 = _original_local_config[0] * _rot_vel_old_1;
-    _local_rot_vel_0 = _original_local_config[0] * _rot_vel_0;
-    _local_rot_vel_1 = _original_local_config[0] * _rot_vel_1;
-    _local_rot_accel_0 = _original_local_config[0] * _rot_accel_0;
-    _local_rot_accel_1 = _original_local_config[0] * _rot_accel_1;
+    _u_dotdot_residual_rot_0 = _original_local_config[0] * _u_dotdot_residual_rot_0;
+    _u_dot_residual_rot_0 = _original_local_config[0] * _u_dot_residual_rot_0;
+    _u_dotdot_residual_rot_1 = _original_local_config[0] * _u_dotdot_residual_rot_1;
+    _u_dot_residual_rot_1 = _original_local_config[0] * _u_dot_residual_rot_1;
 
-    // local residual
+    // Calculating local residuals
     for (unsigned int i = 0; i < _ndisp; ++i)
     {
-      if (_component < 3)
+      if (_component < 3) // Forces
       {
+        if (_time_integrator->isLumped())
+        // Lumped mass calculations
+        {
+          _local_force[0](i) = _density[0] * _area[0] * _original_length[0] / 2.0 *
+                               (_u_dotdot_residual_trans_0(i) +
+                               _eta[0] * (1.0 + _alpha) * _u_dot_residual_trans_0(i) -
+                               _alpha * _eta[0] * _local_vel_old_0(i));
+          _local_force[1](i) = _density[0] * _area[0] * _original_length[0] / 2.0 *
+                               (_u_dotdot_residual_trans_1(i) +
+                               _eta[0] * (1.0 + _alpha) * _u_dot_residual_trans_1(i) -
+                               _alpha * _eta[0] * _local_vel_old_1(i));
+        }
+        else
+        // Consistent (same for explicit, implicit, and implicit with HHT)
+        // Note that for explicit, alpha is ensured to be zero
+        {
         _local_force[0](i) = _density[0] * _area[0] * _original_length[0] / 3.0 *
-                             (_local_accel_0(i) + _local_accel_1(i) / 2.0 +
-                              _eta[0] * (1.0 + _alpha) * (_local_vel_0(i) + _local_vel_1(i) / 2.0) -
+                             (_u_dotdot_residual_trans_0(i) + _u_dotdot_residual_trans_1(i) / 2.0 +
+                              _eta[0] * (1.0 + _alpha) * (_u_dot_residual_trans_0(i) + _u_dot_residual_trans_1(i) / 2.0) -
                               _alpha * _eta[0] * (_local_vel_old_0(i) + _local_vel_old_1(i) / 2.0));
         _local_force[1](i) = _density[0] * _area[0] * _original_length[0] / 3.0 *
-                             (_local_accel_1(i) + _local_accel_0(i) / 2.0 +
-                              _eta[0] * (1.0 + _alpha) * (_local_vel_1(i) + _local_vel_0(i) / 2.0) -
+                             (_u_dotdot_residual_trans_1(i) + _u_dotdot_residual_trans_0(i) / 2.0 +
+                              _eta[0] * (1.0 + _alpha) * (_u_dot_residual_trans_1(i) + _u_dot_residual_trans_0(i) / 2.0) -
                               _alpha * _eta[0] * (_local_vel_old_1(i) + _local_vel_old_0(i) / 2.0));
+        }
       }
 
-      if (_component > 2)
+      if (_component > 2) // Moments
       {
         Real I = _Iy[0] + _Iz[0];
         if (isParamValid("Ix") && (i == 0))
@@ -311,95 +335,113 @@ InertialForceBeam::computeResidual()
           I = _Iz[0];
         else if (i == 2)
           I = _Iy[0];
-
-        _local_moment[0](i) =
-            _density[0] * I * _original_length[0] / 3.0 *
-            (_local_rot_accel_0(i) + _local_rot_accel_1(i) / 2.0 +
-             _eta[0] * (1.0 + _alpha) * (_local_rot_vel_0(i) + _local_rot_vel_1(i) / 2.0) -
-             _alpha * _eta[0] * (_local_rot_vel_old_0(i) + _local_rot_vel_old_1(i) / 2.0));
-        _local_moment[1](i) =
-            _density[0] * I * _original_length[0] / 3.0 *
-            (_local_rot_accel_1(i) + _local_rot_accel_0(i) / 2.0 +
-             _eta[0] * (1.0 + _alpha) * (_local_rot_vel_1(i) + _local_rot_vel_0(i) / 2.0) -
-             _alpha * _eta[0] * (_local_rot_vel_old_1(i) + _local_rot_vel_old_0(i) / 2.0));
+        if (_time_integrator->isLumped())
+        // Lumped mass matrix case
+        {
+          _local_moment[0](i) = _density[0] * I * _original_length[0] / 2.0 *
+                                (_u_dotdot_residual_rot_0(i) +
+                                _eta[0] * (1.0 + _alpha) * _u_dot_residual_rot_0(i) -
+                                _alpha * _eta[0] * _local_rot_vel_old_0(i));
+          _local_moment[1](i) = _density[0] * I * _original_length[0] / 2.0 *
+                                (_u_dotdot_residual_rot_1(i) +
+                                _eta[0] * (1.0 + _alpha) * _u_dot_residual_rot_1(i) -
+                                _alpha * _eta[0] * _local_rot_vel_old_1(i));
+        }
+        else
+        // Consistent mass matrix case (same for explicit, implicit, and implicit with HHT)
+        // Note that for explicit, _alpha is ensured to be zero
+        {
+          _local_moment[0](i) =
+              _density[0] * I * _original_length[0] / 3.0 *
+              (_u_dotdot_residual_rot_0(i) + _u_dotdot_residual_rot_1(i) / 2.0 +
+               _eta[0] * (1.0 + _alpha) * (_u_dot_residual_rot_0(i) + _u_dot_residual_rot_1(i) / 2.0) -
+               _alpha * _eta[0] * (_local_rot_vel_old_0(i) + _local_rot_vel_old_1(i) / 2.0));
+          _local_moment[1](i) =
+              _density[0] * I * _original_length[0] / 3.0 *
+              (_u_dotdot_residual_rot_1(i) + _u_dotdot_residual_rot_0(i) / 2.0 +
+               _eta[0] * (1.0 + _alpha) * (_u_dot_residual_rot_1(i) + _u_dot_residual_rot_0(i) / 2.0) -
+               _alpha * _eta[0] * (_local_rot_vel_old_1(i) + _local_rot_vel_old_0(i) / 2.0));
+        }
       }
     }
 
     // If Ay or Az are non-zero, contribution of rotational accelerations to translational forces
     // and vice versa have to be added
+    // For consistent mass matrix option only
     if (_component < 3)
     {
       _local_force[0](0) +=
           _density[0] * _original_length[0] / 3.0 *
-          (_Az[0] * (_local_rot_accel_0(1) + _local_rot_accel_1(1) / 2.0 +
-                     _eta[0] * (1.0 + _alpha) * (_local_rot_vel_0(1) + _local_rot_vel_1(1) / 2.0) -
+          (_Az[0] * (_u_dotdot_residual_rot_0(1) + _u_dotdot_residual_rot_1(1) / 2.0 +
+                     _eta[0] * (1.0 + _alpha) * (_u_dot_residual_rot_0(1) + _u_dot_residual_rot_1(1) / 2.0) -
                      _alpha * _eta[0] * (_local_rot_vel_old_0(1) + _local_rot_vel_old_1(1) / 2.0)) -
-           _Ay[0] * (_local_rot_accel_0(2) + _local_rot_accel_1(2) / 2.0 +
-                     _eta[0] * (1.0 + _alpha) * (_local_rot_vel_0(2) + _local_rot_vel_1(2) / 2.0) -
+           _Ay[0] * (_u_dotdot_residual_rot_0(2) + _u_dotdot_residual_rot_1(2) / 2.0 +
+                     _eta[0] * (1.0 + _alpha) * (_u_dot_residual_rot_0(2) + _u_dot_residual_rot_1(2) / 2.0) -
                      _alpha * _eta[0] * (_local_rot_vel_old_0(2) + _local_rot_vel_old_1(2) / 2.0)));
       _local_force[1](0) +=
           _density[0] * _original_length[0] / 3.0 *
-          (_Az[0] * (_local_rot_accel_1(1) + _local_rot_accel_0(1) / 2.0 +
-                     _eta[0] * (1.0 + _alpha) * (_local_rot_vel_1(1) + _local_rot_vel_0(1) / 2.0) -
+          (_Az[0] * (_u_dotdot_residual_rot_1(1) + _u_dotdot_residual_rot_0(1) / 2.0 +
+                     _eta[0] * (1.0 + _alpha) * (_u_dot_residual_rot_1(1) + _u_dot_residual_rot_0(1) / 2.0) -
                      _alpha * _eta[0] * (_local_rot_vel_old_1(1) + _local_rot_vel_old_0(1) / 2.0)) -
-           _Ay[0] * (_local_rot_accel_1(2) + _local_rot_accel_0(2) / 2.0 +
-                     _eta[0] * (1.0 + _alpha) * (_local_rot_vel_1(2) + _local_rot_vel_0(2) / 2.0) -
+           _Ay[0] * (_u_dotdot_residual_rot_1(2) + _u_dotdot_residual_rot_0(2) / 2.0 +
+                     _eta[0] * (1.0 + _alpha) * (_u_dot_residual_rot_1(2) + _u_dot_residual_rot_0(2) / 2.0) -
                      _alpha * _eta[0] * (_local_rot_vel_old_1(2) + _local_rot_vel_old_0(2) / 2.0)));
 
       _local_force[0](1) +=
           -_density[0] * _original_length[0] / 3.0 * _Az[0] *
-          (_local_rot_accel_0(0) + _local_rot_accel_1(0) / 2.0 +
-           _eta[0] * (1.0 + _alpha) * (_local_rot_vel_0(0) + _local_rot_vel_1(0) / 2.0) -
+          (_u_dotdot_residual_rot_0(0) + _u_dotdot_residual_rot_1(0) / 2.0 +
+           _eta[0] * (1.0 + _alpha) * (_u_dot_residual_rot_0(0) + _u_dot_residual_rot_1(0) / 2.0) -
            _alpha * _eta[0] * (_local_rot_vel_old_0(0) + _local_rot_vel_old_1(0) / 2.0));
       _local_force[1](1) +=
           -_density[0] * _original_length[0] / 3.0 * _Az[0] *
-          (_local_rot_accel_1(0) + _local_rot_accel_0(0) / 2.0 +
-           _eta[0] * (1.0 + _alpha) * (_local_rot_vel_1(0) + _local_rot_vel_0(0) / 2.0) -
+          (_u_dotdot_residual_rot_1(0) + _u_dotdot_residual_rot_0(0) / 2.0 +
+           _eta[0] * (1.0 + _alpha) * (_u_dot_residual_rot_1(0) + _u_dot_residual_rot_0(0) / 2.0) -
            _alpha * _eta[0] * (_local_rot_vel_old_1(0) + _local_rot_vel_old_0(0) / 2.0));
 
       _local_force[0](2) +=
           _density[0] * _original_length[0] / 3.0 * _Ay[0] *
-          (_local_rot_accel_0(0) + _local_rot_accel_1(0) / 2.0 +
-           _eta[0] * (1.0 + _alpha) * (_local_rot_vel_0(0) + _local_rot_vel_1(0) / 2.0) -
+          (_u_dotdot_residual_rot_0(0) + _u_dotdot_residual_rot_1(0) / 2.0 +
+           _eta[0] * (1.0 + _alpha) * (_u_dot_residual_rot_0(0) + _u_dot_residual_rot_1(0) / 2.0) -
            _alpha * _eta[0] * (_local_rot_vel_old_0(0) + _local_rot_vel_old_1(0) / 2.0));
       _local_force[1](2) +=
           _density[0] * _original_length[0] / 3.0 * _Ay[0] *
-          (_local_rot_accel_1(0) + _local_rot_accel_0(0) / 2.0 +
-           _eta[0] * (1.0 + _alpha) * (_local_rot_vel_1(0) + _local_rot_vel_0(0) / 2.0) -
+          (_u_dotdot_residual_rot_1(0) + _u_dotdot_residual_rot_0(0) / 2.0 +
+           _eta[0] * (1.0 + _alpha) * (_u_dot_residual_rot_1(0) + _u_dot_residual_rot_0(0) / 2.0) -
            _alpha * _eta[0] * (_local_rot_vel_old_1(0) + _local_rot_vel_old_0(0) / 2.0));
+
     }
     else
     {
       _local_moment[0](0) += _density[0] * _original_length[0] / 3.0 *
-                             (-_Az[0] * (_local_accel_0(1) + _local_accel_1(1) / 2.0) +
-                              _Ay[0] * (_local_accel_0(1) + _local_accel_1(1) / 2.0));
+                             (-_Az[0] * (_u_dotdot_residual_trans_0(1) + _u_dotdot_residual_trans_1(1) / 2.0) +
+                              _Ay[0] * (_u_dotdot_residual_trans_0(1) + _u_dotdot_residual_trans_1(1) / 2.0));
       _local_moment[1](0) += _density[0] * _original_length[0] / 3.0 *
-                             (-_Az[0] * (_local_accel_1(1) + _local_accel_0(1) / 2.0) +
-                              _Ay[0] * (_local_accel_1(1) + _local_accel_0(1) / 2.0));
+                             (-_Az[0] * (_u_dotdot_residual_trans_1(1) + _u_dotdot_residual_trans_0(1) / 2.0) +
+                              _Ay[0] * (_u_dotdot_residual_trans_1(1) + _u_dotdot_residual_trans_0(1) / 2.0));
 
       _local_moment[0](1) += _density[0] * _original_length[0] / 3.0 * _Az[0] *
-                             (_local_accel_0(0) + _local_accel_1(0) / 2.0);
+                             (_u_dotdot_residual_trans_0(0) + _u_dotdot_residual_trans_1(0) / 2.0);
       _local_moment[1](1) += _density[0] * _original_length[0] / 3.0 * _Az[0] *
-                             (_local_accel_1(0) + _local_accel_0(0) / 2.0);
+                             (_u_dotdot_residual_trans_1(0) + _u_dotdot_residual_trans_0(0) / 2.0);
 
       _local_moment[0](2) += -_density[0] * _original_length[0] / 3.0 * _Ay[0] *
-                             (_local_accel_0(0) + _local_accel_1(0) / 2.0);
+                             (_u_dotdot_residual_trans_0(0) + _u_dotdot_residual_trans_1(0) / 2.0);
       _local_moment[1](2) += -_density[0] * _original_length[0] / 3.0 * _Ay[0] *
-                             (_local_accel_1(0) + _local_accel_0(0) / 2.0);
+                             (_u_dotdot_residual_trans_1(0) + _u_dotdot_residual_trans_0(0) / 2.0);
     }
 
     // Global force and moments
     if (_component < 3)
     {
-      _global_force_0 = _original_local_config[0] * _local_force[0];
-      _global_force_1 = _original_local_config[0] * _local_force[1];
+      _global_force_0 = _original_local_config[0].transpose() * _local_force[0];
+      _global_force_1 = _original_local_config[0].transpose() * _local_force[1];
       _local_re(0) = _global_force_0(_component);
       _local_re(1) = _global_force_1(_component);
     }
     else
     {
-      _global_moment_0 = _original_local_config[0] * _local_moment[0];
-      _global_moment_1 = _original_local_config[0] * _local_moment[1];
+      _global_moment_0 = _original_local_config[0].transpose() * _local_moment[0];
+      _global_moment_1 = _original_local_config[0].transpose() * _local_moment[1];
       _local_re(0) = _global_moment_0(_component - 3);
       _local_re(1) = _global_moment_1(_component - 3);
     }

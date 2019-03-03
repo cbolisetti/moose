@@ -13,6 +13,7 @@
 
 // Forward Declarations
 class InertialForceBeam;
+class TimeIntegrator;
 
 template <>
 InputParameters validParams<InertialForceBeam>();
@@ -124,34 +125,24 @@ private:
   RealVectorValue _vel_old_0, _vel_old_1, _rot_vel_old_0, _rot_vel_old_1;
 
   /**
-   * Current translational and rotational velocities at the two nodes
-   * of the beam in the global coordinate system
-   **/
-  RealVectorValue _vel_0, _vel_1, _rot_vel_0, _rot_vel_1;
-
-  /**
-   * Current translational and rotational accelerations at the two nodes
-   * of the beam in the global coordinate system
-   **/
-  RealVectorValue _accel_0, _accel_1, _rot_accel_0, _rot_accel_1;
-
-  /**
    * Old translational and rotational velocities at the two nodes
    * of the beam in the initial beam local coordinate system
    **/
   RealVectorValue _local_vel_old_0, _local_vel_old_1, _local_rot_vel_old_0, _local_rot_vel_old_1;
 
   /**
-   * Current translational and rotational velocities at the two nodes
-   * of the beam in the initial beam local coordinate system
+   * Current translational and rotational udotdot residuals at the two nodes
+   * of a beam
    **/
-  RealVectorValue _local_vel_0, _local_vel_1, _local_rot_vel_0, _local_rot_vel_1;
+  RealVectorValue _u_dotdot_residual_trans_0, _u_dotdot_residual_trans_1;
+  RealVectorValue _u_dotdot_residual_rot_0, _u_dotdot_residual_rot_1;
 
   /**
-   * Current translational and rotational accelerations at the two nodes
-   * of the beam in the initial beam local coordinate system
+   * Current translational and rotational udot residuals at the two nodes
+   * of a beam
    **/
-  RealVectorValue _local_accel_0, _local_accel_1, _local_rot_accel_0, _local_rot_accel_1;
+  RealVectorValue _u_dot_residual_trans_0, _u_dot_residual_trans_1;
+  RealVectorValue _u_dot_residual_rot_0, _u_dot_residual_rot_1;
 
   /**
    * Forces and moments at the two end nodes of the beam in the initial
@@ -174,6 +165,11 @@ private:
    * Coupled variable for du_dotdot_du calculated by time integrator
    **/
   const VariableValue * _du_dotdot_du;
+
+  /**
+   * A pointer to TimeIntegrator
+  **/
+  TimeIntegrator * _time_integrator;
 };
 
 #endif // INERTIALFORCEBEAM_H
