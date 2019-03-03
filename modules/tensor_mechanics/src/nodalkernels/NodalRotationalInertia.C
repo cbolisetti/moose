@@ -16,6 +16,7 @@
 #include "MooseVariable.h"
 #include "AuxiliarySystem.h"
 #include "MooseMesh.h"
+#include "TimeIntegrator.h"
 
 registerMooseObject("TensorMechanicsApp", NodalRotationalInertia);
 
@@ -81,9 +82,10 @@ NodalRotationalInertia::NodalRotationalInertia(const InputParameters & parameter
     _eta(getParam<Real>("eta")),
     _alpha(getParam<Real>("alpha")),
     _component(getParam<unsigned int>("component")),
-    _rot_vel_value(_nrot),
+    _rot_dot_residual(_nrot),
     _rot_vel_old_value(_nrot),
-    _rot_accel_value(_nrot)
+    _rot_dotdot_residual(_nrot),
+    _time_integrator(_sys.getTimeIntegrator())
 {
   if (isParamValid("beta") && isParamValid("gamma") && isParamValid("rotational_velocities") &&
       isParamValid("rotational_accelerations"))
@@ -117,9 +119,9 @@ NodalRotationalInertia::NodalRotationalInertia(const InputParameters & parameter
     for (unsigned int i = 0; i < _nrot; ++i)
     {
       MooseVariable * rot_var = getVar("rotations", i);
-      _rot_vel_value[i] = &rot_var->dofValuesDot();
       _rot_vel_old_value[i] = &rot_var->dofValuesDotOld();
-      _rot_accel_value[i] = &rot_var->dofValuesDotDot();
+      _rot_dot_residual[i] = &rot_var->dofValuesDotResidual();
+      _rot_dotdot_residual[i] = &rot_var->dofValuesDotDotResidual();
 
       if (i == 0)
       {
@@ -193,6 +195,10 @@ NodalRotationalInertia::NodalRotationalInertia(const InputParameters & parameter
     mooseError("NodalRotationalInertia: Both x_orientation and y_orientation should be provided if "
                "x_orientation or "
                "y_orientation is different from global x or y direction, respectively.");
+
+  // Check for Explicit and alpha parameter
+  if (_alpha != 0 && _time_integrator->isExplicit())
+    mooseError("NodalTranslationalInertia: HHT time integration parameter can only be used with Newmark-Beta time integrator.");
 }
 
 Real
@@ -231,12 +237,14 @@ NodalRotationalInertia::computeQpResidual()
     }
     else
     {
+      // All cases (Explicit, implicit and implicit with HHT)
+      // Note that _alpha is ensured to be zero with explicit integration
       Real res = 0.0;
       for (unsigned int i = 0; i < _nrot; ++i)
         res += _inertia(_component, i) *
-               ((*_rot_accel_value[i])[_qp] + (*_rot_vel_value[i])[_qp] * _eta * (1.0 + _alpha) -
+               ((*_rot_dotdot_residual[i])[_qp] +
+               (*_rot_dot_residual[i])[_qp] * _eta * (1.0 + _alpha) -
                 _alpha * _eta * (*_rot_vel_old_value[i])[_qp]);
-
       return res;
     }
   }
