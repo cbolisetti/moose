@@ -229,7 +229,7 @@ MooseVariableConstMonomial::computeMonomialValuesHelper(const unsigned & nqp, co
         _u_dot[qp] = _u_dot[0];
 
       if (_need_u_dot_residual)
-          _u_dot_residual[qp] = _u_dot_residual[0];
+        _u_dot_residual[qp] = _u_dot_residual[0];
 
       if (_need_u_dotdot)
         _u_dotdot[qp] = _u_dotdot[0];

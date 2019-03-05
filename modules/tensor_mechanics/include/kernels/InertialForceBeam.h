@@ -168,7 +168,7 @@ private:
 
   /**
    * A pointer to TimeIntegrator
-  **/
+   **/
   TimeIntegrator * _time_integrator;
 };
 

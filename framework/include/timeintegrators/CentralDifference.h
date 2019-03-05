@@ -35,7 +35,6 @@ public:
   virtual NumericVector<Number> & computeUDotResidual() const override;
 
 protected:
-
   /// solution vector for \f$ {du^dotdot}\over{du} \f$
   Real & _du_dotdot_du;
 

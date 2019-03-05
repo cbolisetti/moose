@@ -73,7 +73,8 @@ InertialForce::InertialForce(const InputParameters & parameters)
                "should be provided as input.");
 
   if (_alpha != 0 && _time_integrator->isExplicit())
-    mooseError("InertialForce: HHT time integration parameter can only be used with Newmark-Beta time integrator.");
+    mooseError("InertialForce: HHT time integration parameter can only be used with Newmark-Beta "
+               "time integrator.");
 }
 
 Real
@@ -99,7 +100,8 @@ InertialForce::computeQpResidual()
   //
   // else if (_alpha == 0)
   //   // no HHT, implicit or explicit
-  //   return _test[_i][_qp] * _density[_qp] * ((*_u_dotdot_residual)[_qp] + (*_u_dot_residual)[_qp] * _eta[_qp]);
+  //   return _test[_i][_qp] * _density[_qp] * ((*_u_dotdot_residual)[_qp] + (*_u_dot_residual)[_qp]
+  //   * _eta[_qp]);
 
   else
   {
@@ -120,7 +122,7 @@ InertialForce::computeResidual()
   for (_i = 0; _i < _test.size(); _i++)
     for (_qp = 0; _qp < _qrule->n_points(); _qp++)
       _local_re(_i) += _JxW[_qp] * _coord[_qp] * computeQpResidual();
-      // in the above line, computeQpResidual only contains the Qp mass when lumped mass option is used
+  // in the above line, computeQpResidual only contains the Qp mass when lumped mass option is used
 
   // Residual calculation for lumped-mass matrices for explicit integration
   if (_time_integrator->isLumped() && _time_integrator->isExplicit())
@@ -137,9 +139,12 @@ InertialForce::computeResidual()
     Real u_dot_residual_node, u_dotdot_residual_node;
     for (unsigned int j = 0; j < node.size(); j++)
     {
-      u_dot_residual_node = u_dot_residual(node[j]->dof_number(nonlinear_sys.number(), _var_num, 0));
-      u_dotdot_residual_node = u_dotdot_residual(node[j]->dof_number(nonlinear_sys.number(), _var_num, 0));
-      _local_re(j) *= u_dotdot_residual_node + _eta[_qp] * u_dot_residual_node; // Calculating the residuals at each node
+      u_dot_residual_node =
+          u_dot_residual(node[j]->dof_number(nonlinear_sys.number(), _var_num, 0));
+      u_dotdot_residual_node =
+          u_dotdot_residual(node[j]->dof_number(nonlinear_sys.number(), _var_num, 0));
+      _local_re(j) *= u_dotdot_residual_node +
+                      _eta[_qp] * u_dot_residual_node; // Calculating the residuals at each node
     }
   }
 
@@ -163,9 +168,9 @@ InertialForce::computeQpJacobian()
            _eta[_qp] * (1 + _alpha) * _test[_i][_qp] * _density[_qp] * _gamma / _beta / _dt *
                _phi[_j][_qp];
   else
-    {
-      return _test[_i][_qp] * _density[_qp] * (*_du_dotdot_du)[_qp] * _phi[_j][_qp] +
+  {
+    return _test[_i][_qp] * _density[_qp] * (*_du_dotdot_du)[_qp] * _phi[_j][_qp] +
            _eta[_qp] * (1 + _alpha) * _test[_i][_qp] * _density[_qp] * (*_du_dot_du)[_qp] *
                _phi[_j][_qp];
-    }
+  }
 }

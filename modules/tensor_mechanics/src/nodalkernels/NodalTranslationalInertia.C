@@ -136,7 +136,8 @@ NodalTranslationalInertia::NodalTranslationalInertia(const InputParameters & par
   }
   // Check for Explicit and alpha parameter
   if (_alpha != 0 && _time_integrator->isExplicit())
-    mooseError("NodalTranslationalInertia: HHT time integration parameter can only be used with Newmark-Beta time integrator.");
+    mooseError("NodalTranslationalInertia: HHT time integration parameter can only be used with "
+               "Newmark-Beta time integrator.");
 }
 
 Real
@@ -176,9 +177,8 @@ NodalTranslationalInertia::computeQpResidual()
     else
       // all cases (Explicit, implicit and implicit with HHT)
       // Note that _alpha is enforced to be zero for explicit integration
-      return mass * ((*_u_dotdot_residual)[_qp] +
-                    (*_u_dot_residual)[_qp] * _eta * (1.0 + _alpha) -
-                    _alpha * _eta * (*_u_dot_old)[_qp]);
+      return mass * ((*_u_dotdot_residual)[_qp] + (*_u_dot_residual)[_qp] * _eta * (1.0 + _alpha) -
+                     _alpha * _eta * (*_u_dot_old)[_qp]);
   }
 }
 

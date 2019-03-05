@@ -132,12 +132,12 @@ public:
   /**
    * Returns whether the explicit solvers are used
    */
-   virtual const bool & isExplicit() const { return _is_explicit; }
+  virtual const bool & isExplicit() const { return _is_explicit; }
 
-   /**
-    * Returns whether mass matrix is lumped
-    */
-    virtual const bool & isLumped() const { return _is_lumped; }
+  /**
+   * Returns whether mass matrix is lumped
+   */
+  virtual const bool & isLumped() const { return _is_lumped; }
 
 protected:
   /**

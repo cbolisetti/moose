@@ -1803,12 +1803,13 @@ Coupleable::coupledNodalValuePreviousNL<RealVectorValue>(const std::string & var
 template const Real & Coupleable::coupledNodalDot<Real>(const std::string & var_name,
                                                         unsigned int comp);
 template const Real & Coupleable::coupledNodalDotResidual<Real>(const std::string & var_name,
-                                                        unsigned int comp);
+                                                                unsigned int comp);
 template const RealVectorValue &
 Coupleable::coupledNodalDot<RealVectorValue>(const std::string & var_name, unsigned int comp);
 
 template const RealVectorValue &
-Coupleable::coupledNodalDotResidual<RealVectorValue>(const std::string & var_name, unsigned int comp);
+Coupleable::coupledNodalDotResidual<RealVectorValue>(const std::string & var_name,
+                                                     unsigned int comp);
 
 template const Real &
 Coupleable::adCoupledNodalValueTemplate<Real, RESIDUAL>(const std::string & var_name,

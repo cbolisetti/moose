@@ -90,7 +90,8 @@ protected:
   virtual const typename OutputTools<T>::VariableValue & dotDot();
 
   /**
-   * The residual corresponding to the second time derivative of the variable this object is operating on.
+   * The residual corresponding to the second time derivative of the variable this object is
+   * operating on.
    */
   virtual const typename OutputTools<T>::VariableValue & dotDotResidual();
 

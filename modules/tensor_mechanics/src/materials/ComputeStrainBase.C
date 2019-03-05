@@ -76,8 +76,8 @@ ComputeStrainBase::initialSetup()
   // fetch coupled variables and gradients (as stateful properties if necessary)
   for (unsigned int i = 0; i < _ndisp; ++i)
   {
-      _disp[i] = &coupledValue("displacements", i);
-      _grad_disp[i] = &coupledGradient("displacements", i);
+    _disp[i] = &coupledValue("displacements", i);
+    _grad_disp[i] = &coupledGradient("displacements", i);
   }
 
   // set unused dimensions to zero

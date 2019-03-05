@@ -198,7 +198,8 @@ NodalRotationalInertia::NodalRotationalInertia(const InputParameters & parameter
 
   // Check for Explicit and alpha parameter
   if (_alpha != 0 && _time_integrator->isExplicit())
-    mooseError("NodalTranslationalInertia: HHT time integration parameter can only be used with Newmark-Beta time integrator.");
+    mooseError("NodalTranslationalInertia: HHT time integration parameter can only be used with "
+               "Newmark-Beta time integrator.");
 }
 
 Real
@@ -241,10 +242,9 @@ NodalRotationalInertia::computeQpResidual()
       // Note that _alpha is ensured to be zero with explicit integration
       Real res = 0.0;
       for (unsigned int i = 0; i < _nrot; ++i)
-        res += _inertia(_component, i) *
-               ((*_rot_dotdot_residual[i])[_qp] +
-               (*_rot_dot_residual[i])[_qp] * _eta * (1.0 + _alpha) -
-                _alpha * _eta * (*_rot_vel_old_value[i])[_qp]);
+        res += _inertia(_component, i) * ((*_rot_dotdot_residual[i])[_qp] +
+                                          (*_rot_dot_residual[i])[_qp] * _eta * (1.0 + _alpha) -
+                                          _alpha * _eta * (*_rot_vel_old_value[i])[_qp]);
       return res;
     }
   }

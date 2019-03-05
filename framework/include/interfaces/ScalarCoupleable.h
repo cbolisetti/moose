@@ -155,7 +155,8 @@ protected:
    * @return Reference to a VariableValue containing the residual corresponding
    * to the time derivative for the coupled variable
    */
-  virtual VariableValue & coupledScalarDotResidual(const std::string & var_name, unsigned int comp = 0);
+  virtual VariableValue & coupledScalarDotResidual(const std::string & var_name,
+                                                   unsigned int comp = 0);
 
   /**
    * Returns the second time derivative of a scalar coupled variable
@@ -173,7 +174,8 @@ protected:
    * @return Reference to a VariableValue containing the residual corresponding
    * to the second time derivative of the coupled variable
    */
-  virtual VariableValue & coupledScalarDotDotResidual(const std::string & var_name, unsigned int comp = 0);
+  virtual VariableValue & coupledScalarDotDotResidual(const std::string & var_name,
+                                                      unsigned int comp = 0);
 
   /**
    * Returns the old time derivative of a scalar coupled variable

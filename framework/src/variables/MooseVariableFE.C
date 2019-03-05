@@ -2317,7 +2317,8 @@ MooseVariableFE<OutputType>::computeNodalValues()
       if (_sys.solutionUDotDot())
       {
         _dof_values_dotdot[0] = (*_sys.solutionUDotDot())(_dof_indices[0]);
-        _dof_values_dotdot_residual[0] = (_time_integrator->computeUDotDotResidual())(_dof_indices[0]);
+        _dof_values_dotdot_residual[0] =
+            (_time_integrator->computeUDotDotResidual())(_dof_indices[0]);
       }
       if (_sys.solutionUDotOld())
         _dof_values_dot_old[0] = (*_sys.solutionUDotOld())(_dof_indices[0]);
@@ -2418,12 +2419,14 @@ MooseVariableFE<OutputType>::computeNodalNeighborValues()
         if (_sys.solutionUDot())
         {
           _dof_values_dot_neighbor[i] = (*_sys.solutionUDot())(_dof_indices_neighbor[i]);
-          _dof_values_dot_neighbor_residual[i] = (_time_integrator->computeUDotResidual())(_dof_indices_neighbor[i]);
+          _dof_values_dot_neighbor_residual[i] =
+              (_time_integrator->computeUDotResidual())(_dof_indices_neighbor[i]);
         }
         if (_sys.solutionUDotDot())
         {
           _dof_values_dotdot_neighbor[i] = (*_sys.solutionUDotDot())(_dof_indices_neighbor[i]);
-          _dof_values_dotdot_neighbor_residual[i] = (_time_integrator->computeUDotDotResidual())(_dof_indices_neighbor[i]);
+          _dof_values_dotdot_neighbor_residual[i] =
+              (_time_integrator->computeUDotDotResidual())(_dof_indices_neighbor[i]);
         }
         if (_sys.solutionUDotOld())
           _dof_values_dot_old_neighbor[i] = (*_sys.solutionUDotOld())(_dof_indices_neighbor[i]);
@@ -2556,7 +2559,7 @@ MooseVariableFE<RealVectorValue>::assignNodalValueDot(const Real & value,
 template <>
 void
 MooseVariableFE<RealVectorValue>::assignNodalValueDotResidual(const Real & value,
-                                                      const unsigned int & component)
+                                                              const unsigned int & component)
 {
   _nodal_value_dot_residual(component) = value;
 }
@@ -2585,7 +2588,8 @@ MooseVariableFE<OutputType>::assignNodalValueDotDot(const Real & value, const un
 
 template <typename OutputType>
 void
-MooseVariableFE<OutputType>::assignNodalValueDotDotResidual(const Real & value, const unsigned int &)
+MooseVariableFE<OutputType>::assignNodalValueDotDotResidual(const Real & value,
+                                                            const unsigned int &)
 {
   _nodal_value_dotdot_residual = value;
 }
@@ -2601,7 +2605,7 @@ MooseVariableFE<RealVectorValue>::assignNodalValueDotDot(const Real & value,
 template <>
 void
 MooseVariableFE<RealVectorValue>::assignNodalValueDotDotResidual(const Real & value,
-                                                         const unsigned int & component)
+                                                                 const unsigned int & component)
 {
   _nodal_value_dotdot_residual(component) = value;
 }
