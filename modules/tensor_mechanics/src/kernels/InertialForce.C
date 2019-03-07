@@ -10,6 +10,7 @@
 #include "InertialForce.h"
 #include "SubProblem.h"
 #include "TimeIntegrator.h"
+#include "NonlinearSystemBase.h"
 
 registerMooseObject("TensorMechanicsApp", InertialForce);
 
