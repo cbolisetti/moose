@@ -391,15 +391,15 @@ InertialForceBeam::computeResidual()
     // Global force and moments
     if (_component < 3)
     {
-      _global_force_0 = _original_local_config[0] * _local_force[0];
-      _global_force_1 = _original_local_config[0] * _local_force[1];
+      _global_force_0 = _original_local_config[0].transpose() * _local_force[0];
+      _global_force_1 = _original_local_config[0].transpose() * _local_force[1];
       _local_re(0) = _global_force_0(_component);
       _local_re(1) = _global_force_1(_component);
     }
     else
     {
-      _global_moment_0 = _original_local_config[0] * _local_moment[0];
-      _global_moment_1 = _original_local_config[0] * _local_moment[1];
+      _global_moment_0 = _original_local_config[0].transpose() * _local_moment[0];
+      _global_moment_1 = _original_local_config[0].transpose() * _local_moment[1];
       _local_re(0) = _global_moment_0(_component - 3);
       _local_re(1) = _global_moment_1(_component - 3);
     }
