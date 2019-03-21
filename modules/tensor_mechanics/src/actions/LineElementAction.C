@@ -735,8 +735,17 @@ LineElementAction::actAddNodalKernels()
       auto params = _factory.getValidParams("NodalTranslationalInertia");
       params.applyParameters(parameters(),
                              {"save_in", "diag_save_in", "use_displaced_mesh", "eta"});
-      params.set<Real>("mass") = getParam<Real>("nodal_mass");
+      if (isParamValid("nodal_mass"))
+        params.set<Real>("mass") = getParam<Real>("nodal_mass");
+      else if (isParamValid("nodal_mass_file"))
+        {
+          params.set<FileName>("nodal_mass_file") = getParam<FileName>("nodal_mass_file");
+          params.set<std::vector<BoundaryName>>("boundary") = getParam<std::vector<BoundaryName>>("boundary");
+        }
       params.set<Real>("eta") = eta;
+      params.set<Real>("alpha") = getParam<Real>("alpha");
+      params.set<Real>("beta") = getParam<Real>("beta");
+      params.set<Real>("gamma") = getParam<Real>("gamma");
       params.set<bool>("use_displaced_mesh") = _use_displaced_mesh;
 
       for (unsigned i = 0; i < _ndisp; ++i)

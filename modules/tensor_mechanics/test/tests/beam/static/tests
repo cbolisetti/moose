@@ -32,7 +32,7 @@
     type = 'Exodiff'
     input = 'euler_small_strain_z.i'
     exodiff = 'euler_small_strain_z_out.e'
-
+    
     requirement = "The mechanics system shall accurately predict the"
                   " static bending response of a Euler-Bernoulli beam modeled using"
                   " beam elements under small deformations in the z direction."
@@ -151,5 +151,15 @@
 
     requirement = "The mechanics system shall accurately predict the torsional response"
                   " of a beam modeled using beam elements with user provided polar moment of inertia."
+  [../]
+  [./mesh_gen_test]
+    type = 'Exodiff'
+    input = 'euler_small_strain_y_mesh_gen.i'
+    exodiff = 'euler_small_strain_y_mesh_gen_out.e'
+    
+    requirement = "The BeamMeshGenerator shall accurately create the mesh from node and element"
+                  " information provided through a text file."
+    issues = "#12631"
+    design = "meshgenerators/BeamMeshGenerator.md"
   [../]
 []

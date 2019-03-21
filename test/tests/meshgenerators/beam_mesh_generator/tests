@@ -1,0 +1,13 @@
+[Tests]
+  [./beam_mesh_generator_test]
+    type = 'Exodiff'
+    input = 'beam_mesh_generator.i'
+    cli_args = '--mesh-only'
+    exodiff = 'beam_mesh_generator_in.e'
+    requirement = 'MOOSE shall generate a 1D mesh based on node and element information provided through a file.'
+    design = 'meshgenerators/BeamMeshGenerator.md'
+    issues = '#12631'
+    mesh_mode = 'REPLICATED'
+    recover = false
+  [../]
+[]
