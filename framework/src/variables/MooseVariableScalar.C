@@ -174,13 +174,13 @@ MooseVariableScalar::reinit()
       (*u_dot).get(_dof_indices, &_u_dot[0]);
 
     if (_need_u_dot_residual)
-      (_time_integrator->computeUDotResidual()).get(_dof_indices, &_u_dot_residual[0]);
+      (_time_integrator->uDotResidual()).get(_dof_indices, &_u_dot_residual[0]);
 
     if (_need_u_dotdot)
       (*u_dotdot).get(_dof_indices, &_u_dotdot[0]);
 
     if (_need_u_dotdot_residual)
-      (_time_integrator->computeUDotDotResidual()).get(_dof_indices, &_u_dotdot_residual[0]);
+      (_time_integrator->uDotDotResidual()).get(_dof_indices, &_u_dotdot_residual[0]);
 
     if (_need_u_dot_old)
       (*u_dot_old).get(_dof_indices, &_u_dot_old[0]);
@@ -223,13 +223,13 @@ MooseVariableScalar::reinit()
           (*u_dot).get(one_dof_index, &_u_dot[i]);
 
         if (_need_u_dot_residual)
-          (_time_integrator->computeUDotResidual()).get(one_dof_index, &_u_dot_residual[i]);
+          (_time_integrator->uDotResidual()).get(one_dof_index, &_u_dot_residual[i]);
 
         if (_need_u_dotdot)
           (*u_dotdot).get(one_dof_index, &_u_dotdot[i]);
 
         if (_need_u_dotdot_residual)
-          (_time_integrator->computeUDotDotResidual()).get(one_dof_index, &_u_dotdot_residual[i]);
+          (_time_integrator->uDotDotResidual()).get(one_dof_index, &_u_dotdot_residual[i]);
 
         if (_need_u_dot_old)
           (*u_dot_old).get(one_dof_index, &_u_dot_old[i]);

@@ -30,9 +30,9 @@ public:
 
   virtual void computeTimeDerivatives() override;
 
-  virtual NumericVector<Number> & computeUDotDotResidual() const override;
+  virtual NumericVector<Number> & uDotDotResidual() const override;
 
-  virtual NumericVector<Number> & computeUDotResidual() const override;
+  virtual NumericVector<Number> & uDotResidual() const override;
 
 protected:
   /// solution vector for \f$ {du^dotdot}\over{du} \f$
