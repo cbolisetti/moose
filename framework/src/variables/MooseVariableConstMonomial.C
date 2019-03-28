@@ -158,13 +158,13 @@ MooseVariableConstMonomial::computeMonomialValuesHelper(const unsigned & nqp, co
     if (_sys.solutionUDot())
     {
       u_dot = (*_sys.solutionUDot())(idx);
-      u_dot_residual = (_time_integrator->computeUDotResidual())(idx);
+      u_dot_residual = (_time_integrator->uDotResidual())(idx);
     }
 
     if (_sys.solutionUDotDot())
     {
       u_dotdot = (*_sys.solutionUDotDot())(idx);
-      u_dotdot_residual = (_time_integrator->computeUDotDotResidual())(idx);
+      u_dotdot_residual = (_time_integrator->uDotDotResidual())(idx);
     }
     if (_sys.solutionUDotOld())
       u_dot_old = (*_sys.solutionUDotOld())(idx);
@@ -367,12 +367,12 @@ MooseVariableConstMonomial::computeMonomialNeighborValuesHelper(const unsigned &
     if (_sys.solutionUDot())
     {
       u_dot = (*_sys.solutionUDot())(idx);
-      u_dot_residual = (_time_integrator->computeUDotResidual())(idx);
+      u_dot_residual = (_time_integrator->uDotResidual())(idx);
     }
     if (_sys.solutionUDotDot())
     {
       u_dotdot = (*_sys.solutionUDotDot())(idx);
-      u_dotdot_residual = (_time_integrator->computeUDotDotResidual())(idx);
+      u_dotdot_residual = (_time_integrator->uDotDotResidual())(idx);
     }
     if (_sys.solutionUDotOld())
       u_dot_old = (*_sys.solutionUDotOld())(idx);

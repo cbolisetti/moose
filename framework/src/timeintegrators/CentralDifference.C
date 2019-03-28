@@ -85,45 +85,42 @@ CentralDifference::computeTimeDerivatives()
   // used for Jacobian calculations
   _du_dot_du = 1.0 / (2 * _dt);
   _du_dotdot_du = 1.0 / (_dt * _dt);
+
+  // Computing udotdot residual
+  // u_dotdot_residual = u_dotdot - (u - u_old)/dt^2 = (u - 2* u_old + u_older - u + u_old) / dt^2
+  // u_dotdot_residual = (u_older - u_old)/dt^2
+  _u_dotdot_residual = _sys.solutionOlder();
+  _u_dotdot_residual -= _sys.solutionOld();
+  _u_dotdot_residual *= 1.0 / (_dt * _dt);
+
+  // Computing udotdot residual
+  // u_dot_residual = u_dot - (u - u_old)/2/dt = (u - u_older)/ 2/ dt - (u - u_old)/2/dt
+  // u_dot_residual = (u_old - u_older)/2/dt
+  _u_dot_residual = _sys.solutionOld();
+  _u_dot_residual -= _sys.solutionOlder();
+  _u_dot_residual *= 1.0 / (2.0 * _dt);
 }
 
 NumericVector<Number> &
-CentralDifference::computeUDotDotResidual() const
+CentralDifference::uDotDotResidual() const
 {
   if (!_sys.solutionUDotDot())
     mooseError("TimeIntegrator: Time derivative of solution (`u_dotdot`) is not stored. Please set "
-               "uDotDotRequested() to true in FEProblemBase befor requesting `u_dotdot`.");
-
-  // u_dotdot_residual = u_dotdot - (u - u_old)/dt^2 = (u - 2* u_old + u_older - u + u_old) / dt^2
-  // u_dotdot_residual = (u_older - u_old)/dt^2
-
+               "uDotDotRequested() to true in FEProblemBase before requesting `u_dotdot_residual`.");
   if (_dt != 0)
-  {
-    _u_dotdot_residual = _sys.solutionOlder();
-    _u_dotdot_residual -= _sys.solutionOld();
-    _u_dotdot_residual *= 1.0 / (_dt * _dt);
     return _u_dotdot_residual;
-  }
   else
     return *_sys.solutionUDotDot();
 }
 
 NumericVector<Number> &
-CentralDifference::computeUDotResidual() const
+CentralDifference::uDotResidual() const
 {
   if (!_sys.solutionUDot())
     mooseError("TimeIntegrator: Time derivative of solution (`u_dot`) is not stored. Please set "
-               "uDotRequested() to true in FEProblemBase befor requesting `u_dot`.");
-
-  // u_dot_residual = u_dot - (u - u_old)/2/dt = (u - u_older)/ 2/ dt - (u - u_old)/2/dt
-  // u_dot_residual = (u_old - u_older)/2/dt
+               "uDotRequested() to true in FEProblemBase before requesting `u_dot_residual`.");
   if (_dt != 0)
-  {
-    _u_dot_residual = _sys.solutionOld();
-    _u_dot_residual -= _sys.solutionOlder();
-    _u_dot_residual *= 1.0 / (2.0 * _dt);
     return _u_dot_residual;
-  }
   else
     return *_sys.solutionUDotDot();
 }

@@ -135,8 +135,8 @@ InertialForce::computeResidual()
 
     // Fetch the solution for the nodes in the at time t
     NonlinearSystemBase & nonlinear_sys = _fe_problem.getNonlinearSystemBase();
-    const NumericVector<Number> & u_dotdot_residual = _time_integrator->computeUDotDotResidual();
-    const NumericVector<Number> & u_dot_residual = _time_integrator->computeUDotResidual();
+    const NumericVector<Number> & u_dotdot_residual = _time_integrator->uDotDotResidual();
+    const NumericVector<Number> & u_dot_residual = _time_integrator->uDotResidual();
     Real u_dot_residual_node, u_dotdot_residual_node;
     for (unsigned int j = 0; j < node.size(); j++)
     {

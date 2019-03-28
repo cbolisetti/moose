@@ -73,7 +73,7 @@ TimeIntegrator::getNumLinearIterationsLastSolve() const
 }
 
 NumericVector<Number> &
-TimeIntegrator::computeUDotResidual() const
+TimeIntegrator::uDotResidual() const
 {
   if (!_sys.solutionUDot())
     mooseError("TimeIntegrator: Time derivative of solution (`u_dot`) is not stored. Please set "
@@ -83,7 +83,7 @@ TimeIntegrator::computeUDotResidual() const
 }
 
 NumericVector<Number> &
-TimeIntegrator::computeUDotDotResidual() const
+TimeIntegrator::uDotDotResidual() const
 {
   if (!_sys.solutionUDotDot())
     mooseError("TimeIntegrator: Time derivative of solution (`u_dotdot`) is not stored. Please set "

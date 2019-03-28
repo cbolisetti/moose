@@ -1249,7 +1249,7 @@ MooseVariableFE<OutputType>::computeValuesHelper(
       if (u_dot)
       {
         u_dot_local = (*u_dot)(idx);
-        u_dot_local_residual = (_time_integrator->computeUDotResidual())(idx);
+        u_dot_local_residual = (_time_integrator->uDotResidual())(idx);
         if (_need_dof_values_dot)
           _dof_values_dot[i] = u_dot_local;
         if (_need_dof_values_dot_residual)
@@ -1259,7 +1259,7 @@ MooseVariableFE<OutputType>::computeValuesHelper(
       if (u_dotdot)
       {
         u_dotdot_local = (*u_dotdot)(idx);
-        u_dotdot_local_residual = (_time_integrator->computeUDotDotResidual())(idx);
+        u_dotdot_local_residual = (_time_integrator->uDotDotResidual())(idx);
         if (_need_dof_values_dotdot)
           _dof_values_dotdot[i] = u_dotdot_local;
         if (_need_dof_values_dotdot_residual)
@@ -1803,7 +1803,7 @@ MooseVariableFE<OutputType>::computeNeighborValuesHelper(QBase *& qrule,
       if (u_dot)
       {
         u_dot_local = (*u_dot)(idx);
-        u_dot_local_residual = (_time_integrator->computeUDotResidual())(idx);
+        u_dot_local_residual = (_time_integrator->uDotResidual())(idx);
         if (_need_dof_values_dot_neighbor)
           _dof_values_dot_neighbor[i] = u_dot_local;
         if (_need_dof_values_dot_neighbor_residual)
@@ -1813,7 +1813,7 @@ MooseVariableFE<OutputType>::computeNeighborValuesHelper(QBase *& qrule,
       if (u_dotdot)
       {
         u_dotdot_local = (*u_dotdot)(idx);
-        u_dotdot_local_residual = (_time_integrator->computeUDotDotResidual())(idx);
+        u_dotdot_local_residual = (_time_integrator->uDotDotResidual())(idx);
         if (_need_dof_values_dotdot_neighbor)
           _dof_values_dotdot_neighbor[i] = u_dotdot_local;
         if (_need_dof_values_dotdot_neighbor_residual)
@@ -2312,13 +2312,13 @@ MooseVariableFE<OutputType>::computeNodalValues()
       if (_sys.solutionUDot())
       {
         _dof_values_dot[0] = (*_sys.solutionUDot())(_dof_indices[0]);
-        _dof_values_dot_residual[0] = (_time_integrator->computeUDotResidual())(_dof_indices[0]);
+        _dof_values_dot_residual[0] = (_time_integrator->uDotResidual())(_dof_indices[0]);
       }
       if (_sys.solutionUDotDot())
       {
         _dof_values_dotdot[0] = (*_sys.solutionUDotDot())(_dof_indices[0]);
         _dof_values_dotdot_residual[0] =
-            (_time_integrator->computeUDotDotResidual())(_dof_indices[0]);
+            (_time_integrator->uDotDotResidual())(_dof_indices[0]);
       }
       if (_sys.solutionUDotOld())
         _dof_values_dot_old[0] = (*_sys.solutionUDotOld())(_dof_indices[0]);
@@ -2420,13 +2420,13 @@ MooseVariableFE<OutputType>::computeNodalNeighborValues()
         {
           _dof_values_dot_neighbor[i] = (*_sys.solutionUDot())(_dof_indices_neighbor[i]);
           _dof_values_dot_neighbor_residual[i] =
-              (_time_integrator->computeUDotResidual())(_dof_indices_neighbor[i]);
+              (_time_integrator->uDotResidual())(_dof_indices_neighbor[i]);
         }
         if (_sys.solutionUDotDot())
         {
           _dof_values_dotdot_neighbor[i] = (*_sys.solutionUDotDot())(_dof_indices_neighbor[i]);
           _dof_values_dotdot_neighbor_residual[i] =
-              (_time_integrator->computeUDotDotResidual())(_dof_indices_neighbor[i]);
+              (_time_integrator->uDotDotResidual())(_dof_indices_neighbor[i]);
         }
         if (_sys.solutionUDotOld())
           _dof_values_dot_old_neighbor[i] = (*_sys.solutionUDotOld())(_dof_indices_neighbor[i]);

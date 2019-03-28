@@ -248,8 +248,8 @@ InertialForceBeam::computeResidual()
                    "requesting `u_dot_old`.");
 
       const NumericVector<Number> & vel_old = *nonlinear_sys.solutionUDotOld();
-      const NumericVector<Number> & u_dotdot_residual = _time_integrator->computeUDotDotResidual();
-      const NumericVector<Number> & u_dot_residual = _time_integrator->computeUDotResidual();
+      const NumericVector<Number> & u_dotdot_residual = _time_integrator->uDotDotResidual();
+      const NumericVector<Number> & u_dot_residual = _time_integrator->uDotResidual();
 
       for (unsigned int i = 0; i < _ndisp; ++i)
       {

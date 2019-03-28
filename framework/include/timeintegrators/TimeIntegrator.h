@@ -120,14 +120,14 @@ public:
    * Same as the second time derivative by default.
    * Different from the second time derivative for explicit solvers.
    */
-  virtual NumericVector<Number> & computeUDotDotResidual() const;
+  virtual NumericVector<Number> & uDotDotResidual() const;
 
   /**
    * Returns the residual corresponding to the time derivative
    * Same as the time derivative by default.
    * Different from the time derivative for explicit solvers.
    */
-  virtual NumericVector<Number> & computeUDotResidual() const;
+  virtual NumericVector<Number> & uDotResidual() const;
 
   /**
    * Returns whether the explicit solvers are used
