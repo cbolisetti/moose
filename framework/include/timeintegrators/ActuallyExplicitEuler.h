@@ -13,7 +13,6 @@
 #include "MeshChangedInterface.h"
 
 #include "libmesh/linear_solver.h"
-#include "libmesh/preconditioner.h"
 
 // Forward declarations
 class ActuallyExplicitEuler;
@@ -88,22 +87,6 @@ protected:
   Real _current_time;
 };
 
-/**
- * Helper class to apply preconditioner
- */
-class LumpedPreconditioner : public Preconditioner<Real>
-{
-public:
-  LumpedPreconditioner(const NumericVector<Real> & diag_inverse);
-
-  virtual void init() override;
-  virtual void apply(const NumericVector<Real> & x, NumericVector<Real> & y) override;
-
-protected:
-  /// The inverse of the diagonal of the lumped matrix
-  const NumericVector<Real> & _diag_inverse;
-};
-
 template <typename T, typename T2>
 void
 ActuallyExplicitEuler::computeTimeDerivativeHelper(T & u_dot, const T2 & u_old) const
@@ -111,4 +94,3 @@ ActuallyExplicitEuler::computeTimeDerivativeHelper(T & u_dot, const T2 & u_old) 
   u_dot -= u_old;
   u_dot *= 1. / _dt;
 }
-

@@ -130,10 +130,10 @@ InertialForce::computeResidual()
   // Residual calculation for lumped-mass matrices for explicit integration
   if (_time_integrator->isLumped() && _time_integrator->isExplicit())
   {
-    std::vector<Node *> node;
+    std::vector<const Node *> node;
     node.resize(_test.size());
     for (unsigned int i = 0; i < node.size(); ++i)
-      node[i] = _current_elem->get_node(i);
+      node[i] = _current_elem->node_ptr(i);
 
     // Fetch the solution for the nodes in the at time t
     NonlinearSystemBase & nonlinear_sys = _fe_problem.getNonlinearSystemBase();

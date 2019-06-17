@@ -343,6 +343,31 @@ public:
                  "`u_dotdot`.");
   }
 
+  const FieldVariableValue & uDotResidual() const
+  {
+    if (_sys.solutionUDot())
+    {
+      _need_u_dot_residual = true;
+      return _u_dot_residual;
+    }
+    else
+      mooseError("MooseVariableFE: Time derivative of solution (`u_dot`) is not stored. Please set "
+                 "uDotRequested() to true in FEProblemBase before requesting `u_dot`.");
+  }
+
+  const FieldVariableValue & uDotDotResidual() const
+  {
+    if (_sys.solutionUDotDot())
+    {
+      _need_u_dotdot_residual = true;
+      return _u_dotdot_residual;
+    }
+    else
+      mooseError("MooseVariableFE: Second time derivative of solution (`u_dotdot`) is not stored. "
+                 "Please set uDotDotRequested() to true in FEProblemBase before requesting "
+                 "`u_dotdot`.");
+  }
+
   const FieldVariableValue & uDotOld() const
   {
     if (_sys.solutionUDotOld())
@@ -387,6 +412,8 @@ public:
   const MooseArray<OutputType> & nodalValueArray(Moose::SolutionState state) const;
   const OutputType & nodalValueDot() const;
   const OutputType & nodalValueDotDot() const;
+  const OutputType & nodalValueDotResidual() const;
+  const OutputType & nodalValueDotDotResidual() const;
   const OutputType & nodalValueDotOld() const;
   const OutputType & nodalValueDotDotOld() const;
   const OutputType & nodalValueDuDotDu() const;
@@ -453,8 +480,10 @@ public:
   const MooseArray<Number> & dofValuesOlder() const;
   const MooseArray<Number> & dofValuesPreviousNL() const;
   const MooseArray<Number> & dofValuesDot() const;
+  const MooseArray<Number> & dofValuesDotResidual() const;
   const MooseArray<Number> & dofValuesDotOld() const;
   const MooseArray<Number> & dofValuesDotDot() const;
+  const MooseArray<Number> & dofValuesDotDotResidual() const;
   const MooseArray<Number> & dofValuesDotDotOld() const;
   const MooseArray<Number> & dofValuesDuDotDu() const;
   const MooseArray<Number> & dofValuesDuDotDotDu() const;
@@ -571,6 +600,10 @@ private:
   OutputType _nodal_value_dot;
   /// nodal values of u_dotdot
   OutputType _nodal_value_dotdot;
+  /// nodal values of u_dot_residual
+  OutputType _nodal_value_dot_residual;
+  /// nodal values of u_dotdot_residual
+  OutputType _nodal_value_dotdot_residual;
   /// nodal values of u_dot_old
   OutputType _nodal_value_dot_old;
   /// nodal values of u_dotdot_old
@@ -596,6 +629,8 @@ private:
   mutable bool _need_u_dot;
   mutable bool _need_ad_u_dot;
   mutable bool _need_u_dotdot;
+  mutable bool _need_u_dot_residual;
+  mutable bool _need_u_dotdot_residual;
   mutable bool _need_u_dot_old;
   mutable bool _need_u_dotdot_old;
   mutable bool _need_du_dot_du;
@@ -634,6 +669,8 @@ private:
   mutable bool _need_dof_values_previous_nl;
   mutable bool _need_dof_values_dot;
   mutable bool _need_dof_values_dotdot;
+  mutable bool _need_dof_values_dot_residual;
+  mutable bool _need_dof_values_dotdot_residual;
   mutable bool _need_dof_values_dot_old;
   mutable bool _need_dof_values_dotdot_old;
   mutable bool _need_dof_du_dot_du;
@@ -652,6 +689,10 @@ private:
   MooseArray<Real> _dof_values_dot;
   /// nodal values of u_dotdot
   MooseArray<Real> _dof_values_dotdot;
+  /// nodal values of u_dot_residual
+  MooseArray<Real> _dof_values_dot_residual;
+  /// nodal values of u_dotdot_residual
+  MooseArray<Real> _dof_values_dotdot_residual;
   /// nodal values of u_dot_old
   MooseArray<Real> _dof_values_dot_old;
   /// nodal values of u_dotdot_old
@@ -703,6 +744,12 @@ private:
 
   /// u_dotdot (second time derivative)
   FieldVariableValue _u_dotdot, _u_dotdot_bak;
+
+  /// u_dot_residual (residual corresponding to first time derivative)
+  FieldVariableValue _u_dot_residual, _u_dot_residual_bak;
+
+  /// u_dotdot_residual (residual corresponding to second time derivative)
+  FieldVariableValue _u_dotdot_residual, _u_dotdot_residual_bak;
 
   /// u_dot_old (time derivative)
   FieldVariableValue _u_dot_old, _u_dot_old_bak;

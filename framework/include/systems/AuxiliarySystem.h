@@ -25,8 +25,6 @@ typedef AuxKernelTempl<RealVectorValue> VectorAuxKernel;
 class FEProblemBase;
 class TimeIntegrator;
 class AuxScalarKernel;
-class AuxKernel;
-class FEProblemBase;
 
 // libMesh forward declarations
 namespace libMesh
@@ -267,4 +265,3 @@ public:
   friend class ComputeNodalKernelJacobiansThread;
   friend class ComputeNodalKernelBCJacobiansThread;
 };
-
