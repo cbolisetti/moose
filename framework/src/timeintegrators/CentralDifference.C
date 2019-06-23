@@ -29,9 +29,8 @@ validParams<CentralDifference>()
 CentralDifference::CentralDifference(const InputParameters & parameters)
   : ActuallyExplicitEuler(parameters),
     _du_dotdot_du(_sys.duDotDotDu()),
-    _u_dotdot_residual(
-        _fe_problem.getNonlinearSystemBase().addVector("u_dotdot_residual", true, GHOSTED)),
-    _u_dot_residual(_fe_problem.getNonlinearSystemBase().addVector("u_dot_residual", true, GHOSTED))
+    _u_dotdot_residual(_sys.addVector("u_dotdot_residual", true, GHOSTED)),
+    _u_dot_residual(_sys.addVector("u_dot_residual", true, GHOSTED))
 {
   _is_explicit = true;
   if (_solve_type == LUMPED)
