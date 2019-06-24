@@ -123,7 +123,7 @@ NodalLumpedMassKernel::computeJacobian()
   {
     for (unsigned int i = 0; i < _test.size(); ++i)
     {
-      Node * node = _current_elem->get_node(i);
+      const Node * node = _current_elem->node_ptr(i);
       if (_node_id_to_mass.find(node->id()) != _node_id_to_mass.end())
         mass[i] = _node_id_to_mass[node->id()];
       else
