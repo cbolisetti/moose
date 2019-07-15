@@ -68,6 +68,7 @@ validParams<InertialForceBeam>()
       "An integer corresponding to the direction "
       "the variable this kernel acts in. (0 for disp_x, "
       "1 for disp_y, 2 for disp_z, 3 for rot_x, 4 for rot_y and 5 for rot_z)");
+  params.addParam<bool>("eigen", false, "Switch for Eigenvalue analysis");
   return params;
 }
 
@@ -103,7 +104,8 @@ InertialForceBeam::InertialForceBeam(const InputParameters & parameters)
     _original_length(getMaterialPropertyByName<Real>("original_length")),
     _component(getParam<unsigned int>("component")),
     _local_force(2),
-    _local_moment(2)
+    _local_moment(2),
+    _eigen(getParam<bool>("eigen"))
 {
   // Checking for consistency between the length of the provided rotations and displacements vector
   if (_ndisp != _nrot)
@@ -433,10 +435,15 @@ InertialForceBeam::computeJacobian()
   mooseAssert(_beta > 0.0, "InertialForceBeam: Beta parameter should be positive.");
 
   Real factor = 0.0;
-  if (_has_beta)
-    factor = 1.0 / (_beta * _dt * _dt) + _eta[0] * (1.0 + _alpha) * _gamma / _beta / _dt;
+  if (_eigen)
+    factor = 1.0;
   else
-    factor = (*_du_dotdot_du)[0] + _eta[0] * (1.0 + _alpha) * (*_du_dot_du)[0];
+    {
+      if (_has_beta)
+        factor = 1.0 / (_beta * _dt * _dt) + _eta[0] * (1.0 + _alpha) * _gamma / _beta / _dt;
+      else
+        factor = (*_du_dotdot_du)[0] + _eta[0] * (1.0 + _alpha) * (*_du_dot_du)[0];
+    }
 
   for (unsigned int i = 0; i < _test.size(); ++i)
   {
@@ -485,10 +492,15 @@ InertialForceBeam::computeOffDiagJacobian(MooseVariableFEBase & jvar)
   mooseAssert(_beta > 0.0, "InertialForceBeam: Beta parameter should be positive.");
 
   Real factor = 0.0;
-  if (_has_beta)
-    factor = 1.0 / (_beta * _dt * _dt) + _eta[0] * (1.0 + _alpha) * _gamma / _beta / _dt;
+  if (_eigen) // Eigenvalue analysis
+    factor = 1.0;
   else
-    factor = (*_du_dotdot_du)[0] + _eta[0] * (1.0 + _alpha) * (*_du_dot_du)[0];
+  {
+    if (_has_beta)
+      factor = 1.0 / (_beta * _dt * _dt) + _eta[0] * (1.0 + _alpha) * _gamma / _beta / _dt;
+    else
+      factor = (*_du_dotdot_du)[0] + _eta[0] * (1.0 + _alpha) * (*_du_dot_du)[0];
+  }
 
   size_t jvar_num = jvar.number();
   if (jvar_num == _var.number())

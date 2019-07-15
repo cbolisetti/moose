@@ -38,6 +38,7 @@ validParams<InertialForce>()
                         "by HHT time integration scheme");
   params.addParam<MaterialPropertyName>(
       "density", "density", "Name of Material Property that provides the density");
+  params.addParam<bool>("eigen", false, "Switch for Eigenvalue analysis.");
   return params;
 }
 
@@ -51,7 +52,8 @@ InertialForce::InertialForce(const InputParameters & parameters)
     _has_velocity(isParamValid("velocity")),
     _has_acceleration(isParamValid("acceleration")),
     _eta(getMaterialProperty<Real>("eta")),
-    _alpha(getParam<Real>("alpha"))
+    _alpha(getParam<Real>("alpha")),
+    _eigen(getParam<bool>("eigen"))
 {
   if (_has_beta && _has_gamma && _has_velocity && _has_acceleration)
   {
@@ -95,14 +97,19 @@ InertialForce::computeQpResidual()
 Real
 InertialForce::computeQpJacobian()
 {
-  if (_dt == 0)
-    return 0;
-  else if (_has_beta)
-    return _test[_i][_qp] * _density[_qp] / (_beta * _dt * _dt) * _phi[_j][_qp] +
-           _eta[_qp] * (1 + _alpha) * _test[_i][_qp] * _density[_qp] * _gamma / _beta / _dt *
-               _phi[_j][_qp];
+  if (_eigen)
+    return _test[_i][_qp] * _density[_qp] * _phi[_j][_qp];
   else
-    return _test[_i][_qp] * _density[_qp] * (*_du_dotdot_du)[_qp] * _phi[_j][_qp] +
-           _eta[_qp] * (1 + _alpha) * _test[_i][_qp] * _density[_qp] * (*_du_dot_du)[_qp] *
-               _phi[_j][_qp];
+  {
+    if (_dt == 0)
+      return 0;
+    else if (_has_beta)
+      return _test[_i][_qp] * _density[_qp] / (_beta * _dt * _dt) * _phi[_j][_qp] +
+             _eta[_qp] * (1 + _alpha) * _test[_i][_qp] * _density[_qp] * _gamma / _beta / _dt *
+                 _phi[_j][_qp];
+    else
+      return _test[_i][_qp] * _density[_qp] * (*_du_dotdot_du)[_qp] * _phi[_j][_qp] +
+             _eta[_qp] * (1 + _alpha) * _test[_i][_qp] * _density[_qp] * (*_du_dot_du)[_qp] *
+                 _phi[_j][_qp];
+  }
 }

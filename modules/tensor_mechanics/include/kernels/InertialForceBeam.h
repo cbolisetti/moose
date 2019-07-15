@@ -170,6 +170,9 @@ private:
    **/
   std::vector<RealVectorValue> _local_force, _local_moment;
 
+  /// Switch for Eigenvalue analysis
+  const bool _eigen;
+
   /**
    * Forces and moments at the two end nodes of the beam in the global
    * coordinate system
@@ -186,4 +189,3 @@ private:
    **/
   const VariableValue * _du_dotdot_du;
 };
-

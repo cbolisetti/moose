@@ -41,6 +41,7 @@ private:
   const bool _has_acceleration;
   const MaterialProperty<Real> & _eta;
   const Real _alpha;
+  const bool _eigen;
 
   // Velocity and acceleration calculated by time integrator
   const VariableValue * _u_dot;
@@ -49,4 +50,3 @@ private:
   const VariableValue * _du_dot_du;
   const VariableValue * _du_dotdot_du;
 };
-

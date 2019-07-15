@@ -364,9 +364,5 @@
   file_base = dyn_euler_small_added_mass_out
   exodus = true
   csv = true
-<<<<<<< HEAD
   perf_graph = true
-=======
-  print_perf_log = true
->>>>>>> Adding nodal mass using file, nodal gravity and changes to line element action #10313
 []
