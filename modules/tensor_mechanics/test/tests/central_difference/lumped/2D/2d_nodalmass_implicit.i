@@ -1,14 +1,23 @@
 # One element test to test the central difference time integrator.
 
 [Mesh]
-  type = GeneratedMesh # Can generate simple lines, rectangles and rectangular prisms
-  dim = 2 # Dimension of the mesh
-  nx = 1 # Number of elements in the x direction
-  ny = 1 # Number of elements in the y direction
-  xmin = 0.0
-  xmax = 1.0
-  ymin = 0.0
-  ymax = 1.0
+  [./generated_mesh]
+    type = GeneratedMeshGenerator
+    dim = 2
+    xmin = 0
+    xmax = 1
+    ymin = 0
+    ymax = 2
+    nx = 1
+    ny = 2
+  [../]
+  [./all_nodes]
+    type = BoundingBoxNodeSetGenerator
+    new_boundary = 'all'
+    input = 'generated_mesh'
+    top_right = '1 2 0'
+    bottom_left = '0 0 0'
+  [../]
 []
 
 [Variables]
@@ -30,28 +39,6 @@
   [./vel_z]
   [../]
   [./accel_z]
-  [../]
-[]
-
-[Kernels]
-  [./DynamicTensorMechanics]
-    displacements = 'disp_x disp_y'
-  [../]
-  [./inertia_x]
-    type = InertialForce
-    variable = disp_x
-    velocity = vel_x
-    acceleration = accel_x
-    beta = 0.25
-    gamma = 0.5
-  [../]
-  [./inertia_y]
-    type = InertialForce
-    variable = disp_y
-    velocity = vel_y
-    acceleration = accel_y
-    beta = 0.25
-    gamma = 0.5
   [../]
 []
 
@@ -85,6 +72,12 @@
   [../]
 []
 
+[Kernels]
+  [./DynamicTensorMechanics]
+    displacements = 'disp_x disp_y'
+  [../]
+[]
+
 [BCs]
   [./y_bot]
     type = DirichletBC
@@ -111,6 +104,21 @@
   [../]
 []
 
+[NodalKernels]
+  [./nodal_mass_x]
+    type = NodalTranslationalInertia
+    variable = 'disp_x'
+    nodal_mass_file = 'nodal_mass_file.csv'
+    boundary = 'all'
+  [../]
+  [./nodal_mass_y]
+    type = NodalTranslationalInertia
+    variable = 'disp_y'
+    nodal_mass_file = 'nodal_mass_file.csv'
+    boundary = 'all'
+  [../]
+[]
+
 [Materials]
   [./elasticity_tensor_block]
     type = ComputeIsotropicElasticityTensor
@@ -127,12 +135,6 @@
     type = ComputeFiniteStrainElasticStress
     block = 0
   [../]
-  [./density]
-    type = GenericConstantMaterial
-    block = 0
-    prop_names = density
-    prop_values = 1e4
-  [../]
 []
 
 [Preconditioning]
@@ -144,12 +146,12 @@
 
 [Executioner]
   type = Transient
-  solve_type = PJFNK
+  solve_type = NEWTON
   nl_abs_tol = 1e-11
   nl_rel_tol = 1e-11
   start_time = -0.01
   end_time = 2
-  dt = 0.001
+  dt = 0.005
   timestep_tolerance = 1e-6
   [./TimeIntegrator]
     type = NewmarkBeta
@@ -164,12 +166,12 @@
   [../]
   [./disp_2x]
     type = PointValue
-    point = '1.0 1.0 0.0'
+    point = '1.0 2.0 0.0'
     variable = disp_x
   [../]
   [./disp_2y]
     type = PointValue
-    point = '1.0 1.0 0.0'
+    point = '1.0 2.0 0.0'
     variable = disp_y
   [../]
 []
@@ -177,6 +179,6 @@
 [Outputs]
   exodus = false
   csv = true
-  perf_graph = false
+  perf_graph = true
   interval = 100
 []

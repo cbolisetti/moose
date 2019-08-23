@@ -1,14 +1,16 @@
-# Test for the central difference time integrator for a 2D mesh
+# Tests for the central difference time integrator for 2D elements
 
 [Mesh]
-  type = GeneratedMesh
-  dim = 2
-  nx = 1
-  ny = 2
-  xmin = 0.0
-  xmax = 1.0
-  ymin = 0.0
-  ymax = 2.0
+  [./generated_mesh]
+    type = GeneratedMeshGenerator
+    dim = 2
+    xmin = 0
+    xmax = 1
+    ymin = 0
+    ymax = 2
+    nx = 1
+    ny = 2
+  [../]
 []
 
 [Variables]
@@ -88,6 +90,7 @@
   timestep_tolerance = 1e-6
   [./TimeIntegrator]
     type = CentralDifference
+    solve_type = lumped
   [../]
 []
 

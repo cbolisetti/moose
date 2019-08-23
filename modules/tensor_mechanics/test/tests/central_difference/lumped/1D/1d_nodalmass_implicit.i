@@ -1,11 +1,20 @@
-# Test for central difference integration for a 1D element
+# Test for central difference integration for 1D elements
 
 [Mesh]
-  type = GeneratedMesh
-  xmin = 0
-  xmax = 10
-  nx = 5
-  dim = 1
+  [./generated_mesh]
+    type = GeneratedMeshGenerator
+    xmin = 0
+    xmax = 10
+    nx = 5
+    dim = 1
+  [../]
+  [./all_nodes]
+    type = BoundingBoxNodeSetGenerator
+    new_boundary = 'all'
+    input = 'generated_mesh'
+    top_right = '10 0 0'
+    bottom_left = '0 0 0'
+  [../]
 []
 
 [Variables]
@@ -19,10 +28,6 @@
   [./DynamicTensorMechanics]
     displacements = 'disp_x'
   [../]
-  [./inertia_x]
-    type = InertialForce
-    variable = disp_x
-  [../]
 []
 
 [NodalKernels]
@@ -32,13 +37,19 @@
     boundary = right
     function = force_x
   [../]
+  [./nodal_masses]
+    type = NodalTranslationalInertia
+    nodal_mass_file = 'nodal_mass_file.csv'
+    variable = 'disp_x'
+    boundary = 'all'
+  [../]
 []
 
 [Functions]
   [./force_x]
     type = PiecewiseLinear
     x = '0.0 1.0 2.0 3.0 4.0' # time
-    y = '0.0 1.0 0.0 -1.0 0.0'  # force
+    y = '0.0 1.0 0.0 -1.0 0.0' # force
     scale_factor = 1e3
   [../]
 []
@@ -68,24 +79,14 @@
     type = ComputeFiniteStrainElasticStress
     block = 0
   [../]
-  [./density]
-    type = GenericConstantMaterial
-    block = 0
-    prop_names = density
-    prop_values = 150
-  [../]
 []
 
 [Executioner]
   type = Transient
-  solve_type = NEWTON
-  nl_rel_tol = 1e-8
-  nl_abs_tol = 1e-8
-  dtmin = 1e-4
-  timestep_tolerance = 1e-6
-  start_time = -0.005
-  end_time = 4
-  dt = 0.001
+  start_time = -0.01
+  end_time = 2
+  dt = 0.005
+  timestep_tolerance = 2e-10
   [./TimeIntegrator]
     type = NewmarkBeta
     beta = 0.25

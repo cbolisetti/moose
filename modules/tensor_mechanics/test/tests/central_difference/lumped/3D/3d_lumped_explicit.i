@@ -1,17 +1,19 @@
-# One element test to test the central difference time integrator in 3D.
+# Test for the central difference time integrator in 3D.
 
 [Mesh]
-  type = GeneratedMesh # Can generate simple lines, rectangles and rectangular prisms
-  dim = 3 # Dimension of the mesh
-  nx = 1 # Number of elements in the x direction
-  ny = 1 # Number of elements in the y direction
-  nz = 1 # Number of elements in the z direction
-  xmin = 0.0
-  xmax = 1
-  ymin = 0.0
-  ymax = 1
-  zmin = 0.0
-  zmax = 1
+  [./generated_mesh]
+    type = GeneratedMeshGenerator
+    dim = 3
+    nx = 1
+    ny = 1
+    nz = 2
+    xmin = 0.0
+    xmax = 1
+    ymin = 0.0
+    ymax = 1
+    zmin = 0.0
+    zmax = 2
+  [../]
 []
 
 [Variables]
@@ -23,56 +25,56 @@
   [../]
 []
 
-# [AuxVariables]
-#   [./vel_x]
-#   [../]
-#   [./accel_x]
-#   [../]
-#   [./vel_y]
-#   [../]
-#   [./accel_y]
-#   [../]
-#   [./vel_z]
-#   [../]
-#   [./accel_z]
-#   [../]
-# []
-#
-# [AuxKernels]
-#   [./accel_x]
-#     type = TestNewmarkTI
-#     variable = accel_x
-#     displacement = disp_x
-#     first = false
-#   [../]
-#   [./vel_x]
-#     type = TestNewmarkTI
-#     variable = vel_x
-#     displacement = disp_x
-#   [../]
-#   [./accel_y]
-#     type = TestNewmarkTI
-#     variable = accel_y
-#     displacement = disp_y
-#     first = false
-#   [../]
-#   [./vel_y]
-#     type = TestNewmarkTI
-#     variable = vel_y
-#     displacement = disp_x
-#   [../]
-#   [./accel_z]
-#     type = TestNewmarkTI
-#     variable = accel_z
-#     displacement = disp_z
-#     first = false
-#   [../]
-#   [./vel_z]
-#     type = TestNewmarkTI
-#     variable = vel_z
-#     displacement = disp_z
-#   [../]
-# []
+[AuxVariables]
+  [./vel_x]
+  [../]
+  [./accel_x]
+  [../]
+  [./vel_y]
+  [../]
+  [./accel_y]
+  [../]
+  [./vel_z]
+  [../]
+  [./accel_z]
+  [../]
+[]
+
+[AuxKernels]
+  [./accel_x]
+    type = TestNewmarkTI
+    variable = accel_x
+    displacement = disp_x
+    first = false
+  [../]
+  [./vel_x]
+    type = TestNewmarkTI
+    variable = vel_x
+    displacement = disp_x
+  [../]
+  [./accel_y]
+    type = TestNewmarkTI
+    variable = accel_y
+    displacement = disp_y
+    first = false
+  [../]
+  [./vel_y]
+    type = TestNewmarkTI
+    variable = vel_y
+    displacement = disp_x
+  [../]
+  [./accel_z]
+    type = TestNewmarkTI
+    variable = accel_z
+    displacement = disp_z
+    first = false
+  [../]
+  [./vel_z]
+    type = TestNewmarkTI
+    variable = vel_z
+    displacement = disp_z
+  [../]
+[]
 
 [Kernels]
   [./DynamicTensorMechanics]
@@ -95,35 +97,21 @@
 [BCs]
   [./x_bot]
     type = FunctionDirichletBC
-    boundary = 'back'
     variable = disp_x
+    boundary = 'back'
     function = dispx
   [../]
   [./y_bot]
     type = FunctionDirichletBC
     variable = disp_y
-    boundary = back
+    boundary = 'back'
     function = dispy
   [../]
   [./z_bot]
     type = FunctionDirichletBC
     variable = disp_z
-    boundary = back
+    boundary = 'back'
     function = dispz
-  [../]
-  [./Periodic]
-    [./x_dir]
-      variable = 'disp_x disp_y disp_z'
-      primary = 'left'
-      secondary = 'right'
-      translation = '1.0 0.0 0.0'
-    [../]
-    [./y_dir]
-      variable = 'disp_x disp_y disp_z'
-      primary = 'bottom'
-      secondary = 'top'
-      translation = '0.0 1.0 0.0'
-    [../]
   [../]
 []
 
@@ -168,20 +156,15 @@
   [../]
 []
 
-[Preconditioning]
-  [./andy]
-    type = SMP
-    full = true
-  [../]
-[]
-
 [Executioner]
   type = Transient
   start_time = -0.01
   end_time = 2
-  dt = 0.001
+  dt = 0.005
+  timestep_tolerance = 1e-6
   [./TimeIntegrator]
     type = CentralDifference
+    solve_type = lumped
   [../]
 []
 
@@ -189,26 +172,26 @@
   [./_dt]
     type = TimestepSize
   [../]
-  [./disp_6x]
+  [./disp_10x]
     type = NodalVariableValue
-    nodeid = 6
+    nodeid = 10
     variable = disp_x
   [../]
-  [./disp_6y]
+  [./disp_10y]
     type = NodalVariableValue
-    nodeid = 6
+    nodeid = 10
     variable = disp_y
   [../]
-  [./disp_6z]
+  [./disp_10z]
     type = NodalVariableValue
-    nodeid = 6
+    nodeid = 10
     variable = disp_z
   [../]
-  # [./accel_6x]
-  #   type = NodalVariableValue
-  #   nodeid = 6
-  #   variable = accel_x
-  # [../]
+  [./accel_10x]
+    type = NodalVariableValue
+    nodeid = 10
+    variable = accel_x
+  [../]
 []
 
 [Outputs]

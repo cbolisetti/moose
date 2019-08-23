@@ -1,14 +1,23 @@
 # One element test to test the central difference time integrator.
 
 [Mesh]
-  type = GeneratedMesh # Can generate simple lines, rectangles and rectangular prisms
-  dim = 2 # Dimension of the mesh
-  nx = 1 # Number of elements in the x direction
-  ny = 1 # Number of elements in the y direction
-  xmin = 0.0
-  xmax = 1.0
-  ymin = 0.0
-  ymax = 1.0
+  [./generated_mesh]
+    type = GeneratedMeshGenerator
+    dim = 2
+    xmin = 0
+    xmax = 1
+    ymin = 0
+    ymax = 2
+    nx = 1
+    ny = 2
+  [../]
+  [./all_nodes]
+    type = BoundingBoxNodeSetGenerator
+    new_boundary = 'all'
+    input = 'generated_mesh'
+    top_right = '1 2 0'
+    bottom_left = '0 0 0'
+  [../]
 []
 
 [Variables]
@@ -21,14 +30,6 @@
 [Kernels]
   [./DynamicTensorMechanics]
     displacements = 'disp_x disp_y'
-  [../]
-  [./inertia_x]
-    type = InertialForce
-    variable = disp_x
-  [../]
-  [./inertia_y]
-    type = InertialForce
-    variable = disp_y
   [../]
 []
 
@@ -55,6 +56,21 @@
   [../]
 []
 
+[NodalKernels]
+  [./nodal_mass_x]
+    type = NodalTranslationalInertia
+    variable = 'disp_x'
+    nodal_mass_file = 'nodal_mass_file.csv'
+    boundary = 'all'
+  [../]
+  [./nodal_mass_y]
+    type = NodalTranslationalInertia
+    variable = 'disp_y'
+    nodal_mass_file = 'nodal_mass_file.csv'
+    boundary = 'all'
+  [../]
+[]
+
 [Materials]
   [./elasticity_tensor_block]
     type = ComputeIsotropicElasticityTensor
@@ -72,28 +88,17 @@
     type = ComputeFiniteStrainElasticStress
     block = 0
   [../]
-  [./density]
-    type = GenericConstantMaterial
-    block = 0
-    prop_names = density
-    prop_values = 1e4
-  [../]
-[]
-
-[Preconditioning]
-  [./andy]
-    type = SMP
-    full = true
-  [../]
 []
 
 [Executioner]
   type = Transient
   start_time = 0
   end_time = 2
-  dt = 0.001
+  dt = 0.005
+  timestep_tolerance = 1e-6
   [./TimeIntegrator]
     type = CentralDifference
+    solve_type = lumped
   [../]
 []
 
@@ -103,12 +108,12 @@
   [../]
   [./disp_2x]
     type = PointValue
-    point = '1.0 1.0 0.0'
+    point = '1.0 2.0 0.0'
     variable = disp_x
   [../]
   [./disp_2y]
     type = PointValue
-    point = '1.0 1.0 0.0'
+    point = '1.0 2.0 0.0'
     variable = disp_y
   [../]
 []

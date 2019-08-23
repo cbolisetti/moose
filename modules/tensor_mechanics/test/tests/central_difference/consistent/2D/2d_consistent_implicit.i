@@ -1,14 +1,14 @@
-# One element test to test the central difference time integrator.
+# Test for the central difference time integrator for a 2D mesh
 
 [Mesh]
-  type = GeneratedMesh # Can generate simple lines, rectangles and rectangular prisms
-  dim = 2 # Dimension of the mesh
-  nx = 1 # Number of elements in the x direction
-  ny = 1 # Number of elements in the y direction
+  type = GeneratedMesh
+  dim = 2
+  nx = 1
+  ny = 2
   xmin = 0.0
   xmax = 1.0
   ymin = 0.0
-  ymax = 1.0
+  ymax = 2.0
 []
 
 [Variables]
@@ -144,12 +144,12 @@
 
 [Executioner]
   type = Transient
-  solve_type = PJFNK
+  solve_type = NEWTON
   nl_abs_tol = 1e-11
   nl_rel_tol = 1e-11
   start_time = -0.01
   end_time = 2
-  dt = 0.001
+  dt = 0.005
   timestep_tolerance = 1e-6
   [./TimeIntegrator]
     type = NewmarkBeta
@@ -164,12 +164,12 @@
   [../]
   [./disp_2x]
     type = PointValue
-    point = '1.0 1.0 0.0'
+    point = '1.0 2.0 0.0'
     variable = disp_x
   [../]
   [./disp_2y]
     type = PointValue
-    point = '1.0 1.0 0.0'
+    point = '1.0 2.0 0.0'
     variable = disp_y
   [../]
 []
@@ -177,6 +177,6 @@
 [Outputs]
   exodus = false
   csv = true
-  perf_graph = false
+  perf_graph = true
   interval = 100
 []

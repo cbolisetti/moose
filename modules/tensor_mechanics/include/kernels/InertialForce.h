@@ -25,9 +25,7 @@ public:
   InertialForce(const InputParameters & parameters);
 
   virtual void computeResidual() override;
-
-  virtual void computeJacobian() override;
-
+  
 protected:
   virtual Real computeQpResidual() override;
 

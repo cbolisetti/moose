@@ -1,17 +1,26 @@
-# One element test for the Newmark-Beta time integrator.
+# Test for the Newmark-Beta time integrator
 
 [Mesh]
-  type = GeneratedMesh # Can generate simple lines, rectangles and rectangular prisms
-  dim = 3 # Dimension of the mesh
-  nx = 1 # Number of elements in the x direction
-  ny = 1 # Number of elements in the y direction
-  nz = 1 # Number of elements in the z direction
-  xmin = 0.0
-  xmax = 1
-  ymin = 0.0
-  ymax = 1
-  zmin = 0.0
-  zmax = 1
+  [./generated_mesh]
+    type = GeneratedMeshGenerator
+    dim = 3
+    nx = 1
+    ny = 1
+    nz = 2
+    xmin = 0.0
+    xmax = 1
+    ymin = 0.0
+    ymax = 1
+    zmin = 0.0
+    zmax = 2
+  [../]
+  [./all_nodes]
+    type = BoundingBoxNodeSetGenerator
+    new_boundary = 'all'
+    input = 'generated_mesh'
+    top_right = '1 1 2'
+    bottom_left = '0 0 0'
+  [../]
 []
 
 [Variables]
@@ -41,18 +50,6 @@
 [Kernels]
   [./DynamicTensorMechanics]
     displacements = 'disp_x disp_y disp_z'
-  [../]
-  [./inertia_x]
-    type = InertialForce
-    variable = disp_x
-  [../]
-  [./inertia_y]
-    type = InertialForce
-    variable = disp_y
-  [../]
-  [./inertia_z]
-    type = InertialForce
-    variable = disp_z
   [../]
 []
 
@@ -120,20 +117,6 @@
     acceleration = accel_z
     function = dispz
   [../]
-  [./Periodic]
-    [./x_dir]
-      variable = 'disp_x disp_y disp_z'
-      primary = 'left'
-      secondary = 'right'
-      translation = '1.0 0.0 0.0'
-    [../]
-    [./y_dir]
-      variable = 'disp_x disp_y disp_z'
-      primary = 'bottom'
-      secondary = 'top'
-      translation = '0.0 1.0 0.0'
-    [../]
-  [../]
 []
 
 [Functions]
@@ -149,6 +132,27 @@
   [./dispz]
     type = ParsedFunction
     value = 0.1*t*t*sin(20*t)
+  [../]
+[]
+
+[NodalKernels]
+  [./nodal_mass_x]
+    type = NodalTranslationalInertia
+    boundary = 'all'
+    nodal_mass_file = 'nodal_mass_file.csv'
+    variable = 'disp_x'
+  [../]
+  [./nodal_mass_y]
+    type = NodalTranslationalInertia
+    boundary = 'all'
+    nodal_mass_file = 'nodal_mass_file.csv'
+    variable = 'disp_y'
+  [../]
+  [./nodal_mass_z]
+    type = NodalTranslationalInertia
+    boundary = 'all'
+    nodal_mass_file = 'nodal_mass_file.csv'
+    variable = 'disp_z'
   [../]
 []
 
@@ -168,12 +172,6 @@
     type = ComputeFiniteStrainElasticStress
     block = 0
   [../]
-  [./density]
-    type = GenericConstantMaterial
-    block = 0
-    prop_names = density
-    prop_values = 1e4
-  [../]
 []
 
 [Preconditioning]
@@ -191,7 +189,7 @@
   timestep_tolerance = 1e-6
   start_time = -0.01
   end_time = 2
-  dt = 0.001
+  dt = 0.005
   [./TimeIntegrator]
     type = NewmarkBeta
     beta = 0.25
@@ -203,20 +201,25 @@
   [./_dt]
     type = TimestepSize
   [../]
-  [./disp_6x]
+  [./disp_10x]
     type = NodalVariableValue
-    nodeid = 6
+    nodeid = 10
     variable = disp_x
   [../]
-  [./disp_6y]
+  [./disp_10y]
     type = NodalVariableValue
-    nodeid = 6
+    nodeid = 10
     variable = disp_y
   [../]
-  [./disp_6z]
+  [./disp_10z]
     type = NodalVariableValue
-    nodeid = 6
+    nodeid = 10
     variable = disp_z
+  [../]
+  [./accel_10x]
+    type = NodalVariableValue
+    nodeid = 10
+    variable = accel_x
   [../]
 []
 

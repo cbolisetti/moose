@@ -1,11 +1,13 @@
 # Test for central difference integration for a 1D element
 
 [Mesh]
-  type = GeneratedMesh
-  xmin = 0
-  xmax = 10
-  nx = 5
-  dim = 1
+  [./generated_mesh]
+    type = GeneratedMeshGenerator
+    xmin = 0
+    xmax = 10
+    nx = 5
+    dim = 1
+  [../]
 []
 
 [Variables]
@@ -79,11 +81,13 @@
 
 [Executioner]
   type = Transient
-  start_time = -0.001
-  end_time = 4
+  start_time = -0.01
+  end_time = 2
+  timestep_tolerance = 2e-10
   dt = 0.005
   [./TimeIntegrator]
     type = CentralDifference
+    solve_type = lumped
   [../]
 []
 
