@@ -162,6 +162,10 @@ ActuallyExplicitEuler::solve()
   {
     case CONSISTENT:
     {
+      std::cout << "\nMASS MATRIXXX\n";
+      mass_matrix.print();
+      std::cout << "\nRESIDUAL\n";
+      _explicit_residual.print();
       const auto num_its_and_final_tol = _linear_solver->solve(
           mass_matrix,
           _explicit_euler_update,

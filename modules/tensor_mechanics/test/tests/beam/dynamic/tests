@@ -10,6 +10,17 @@
                   " of an Euler-Bernoulli beam modeled using beam elements with"
                   " consistent mass/inertia."
   [../]
+  [./dyn_euler_TI]
+    type = 'Exodiff'
+    input = 'dyn_euler_small_explicit.i'
+    cli_args = 'Outputs/file_base=dyn_euler_small_out'
+    exodiff = 'dyn_euler_small_out.e'
+
+    requirement = "The mechanics system shall correctly predict the natural frequencies"
+                  " of an Euler-Bernoulli beam modeled using beam elements with"
+                  " consistent mass/inertia."
+    prereq = dyn_euler
+  [../]
   [./dyn_timoshenko]
     type = 'Exodiff'
     input = 'dyn_timoshenko_small.i'

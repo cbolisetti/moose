@@ -163,7 +163,7 @@ InertialForceBeam::InertialForceBeam(const InputParameters & parameters)
 
   // Check for explicit and alpha
   if (_alpha != 0 && _time_integrator->isExplicit())
-    mooseError("InertialForce: HHT time integration parameter can only be used with Newmark-Beta "
+    mooseError("InertialForceBeam: HHT time integration parameter can only be used with Newmark-Beta "
                "time integrator.");
 }
 
@@ -310,7 +310,7 @@ InertialForceBeam::computeResidual()
     {
       if (_component < 3) // Forces
       {
-        if (_time_integrator->isLumped())
+        if (_time_integrator->isExplicit() && _time_integrator->isLumped())
         // Lumped mass calculations
         {
           _local_force[0](i) = _density[0] * _area[0] * _original_length[0] / 2.0 *
@@ -350,7 +350,7 @@ InertialForceBeam::computeResidual()
           I = _Iz[0];
         else if (i == 2)
           I = _Iy[0];
-        if (_time_integrator->isLumped())
+        if (_time_integrator->isExplicit() && _time_integrator->isLumped())
         // Lumped mass matrix case
         {
           _local_moment[0](i) =
@@ -492,15 +492,22 @@ InertialForceBeam::computeJacobian()
   if (_has_beta)
     factor = 1.0 / (_beta * _dt * _dt) + _eta[0] * (1.0 + _alpha) * _gamma / _beta / _dt;
   else
-    factor = (*_du_dotdot_du)[0] + _eta[0] * (1.0 + _alpha) * (*_du_dot_du)[0];
+    {
+      factor = (*_du_dotdot_du)[0] + _eta[0] * (1.0 + _alpha) * (*_du_dot_du)[0];
+      std::cout << "NO BETA FACTOR****\n" << factor << std::endl;
+    }
 
   for (unsigned int i = 0; i < _test.size(); ++i)
   {
     for (unsigned int j = 0; j < _phi.size(); ++j)
     {
       if (_component < 3)
-        _local_ke(i, j) = (i == j ? 1.0 / 3.0 : 1.0 / 6.0) * _density[0] * _area[0] *
+        {
+          _local_ke(i, j) = (i == j ? 1.0 / 3.0 : 1.0 / 6.0) * _density[0] * _area[0] *
                           _original_length[0] * factor;
+          _local_ke.print();
+          std::cout << std::endl;
+        }
       else if (_component > 2)
       {
         RankTwoTensor I;
@@ -521,6 +528,10 @@ InertialForceBeam::computeJacobian()
   }
 
   ke += _local_ke;
+
+  std::cout << "KE**\n";
+  ke.print();
+  std::cout << std::endl;
 
   if (_has_diag_save_in)
   {
@@ -633,5 +644,7 @@ InertialForceBeam::computeOffDiagJacobian(MooseVariableFEBase & jvar)
         }
       }
     }
+    std::cout << "OFFDIAGONAL\n";
+    ke.print();
   }
 }
