@@ -1710,6 +1710,12 @@ public:
   using SubProblem::haveADObjects;
   void haveADObjects(bool have_ad_objects) override;
 
+  /// If solution older than 2 time steps is required, set solution_state to the number of old timesteps required.
+  virtual void setSolutionState(unsigned int solution_state) { _solution_state = solution_state; }
+
+  /// Get the number of old solution states to be stored
+  virtual unsigned int getSolutionState() const { return _solution_state; }
+
   // Whether or not we should solve this system
   bool shouldSolve() const { return _solve; }
 
@@ -2059,6 +2065,9 @@ private:
   /// through an extra Jacobian evaluation. If this is set to false, then the scaling factors will
   /// be computed during an extra Jacobian evaluation at the beginning of every time step.
   bool _compute_scaling_once;
+  
+  /// Number of old solution states to be stored;
+  unsigned int _solution_state;
 
   friend class AuxiliarySystem;
   friend class NonlinearSystemBase;
