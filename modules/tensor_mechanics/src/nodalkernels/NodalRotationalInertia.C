@@ -197,7 +197,12 @@ NodalRotationalInertia::NodalRotationalInertia(const InputParameters & parameter
 
   // Check for Explicit and alpha parameter
   if (_alpha != 0 && _time_integrator->isExplicit())
-    mooseError("NodalTranslationalInertia: HHT time integration parameter can only be used with "
+    mooseError("NodalRotationalInertia: HHT time integration parameter can only be used with "
+               "Newmark-Beta time integration.");
+
+  // Check for Explicit and beta parameter
+  if (_has_beta != 0 && _time_integrator->isExplicit())
+    mooseError("NodalRotationalInertia: beta time integration parameter can only be used with "
                "Newmark-Beta time integrator.");
 }
 

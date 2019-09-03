@@ -75,9 +75,15 @@ InertialForce::InertialForce(const InputParameters & parameters)
     mooseError("InertialForce: Either all or none of `beta`, `gamma`, `velocity`and `acceleration` "
                "should be provided as input.");
 
+  // Check if HHT and explicit are being used simultaneously
   if (_alpha != 0 && _time_integrator->isExplicit())
     mooseError("InertialForce: HHT time integration parameter can only be used with Newmark-Beta "
-               "time integrator.");
+               "time integration.");
+
+  // Check if beta and explicit are being used simultaneously
+  if (_has_beta && _time_integrator->isExplicit())
+    mooseError("InertialForce: Newmark-beta integration parameter, beta, cannot be provided along with an explicit time "
+               "integrator.");
 }
 
 Real

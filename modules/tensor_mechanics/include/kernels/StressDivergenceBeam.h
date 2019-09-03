@@ -129,5 +129,7 @@ protected:
 
   /// Residual corresponding to rotational DOFs at the nodes in beam local coordinate system
   std::vector<RealVectorValue> _local_moment_res;
-};
 
+  // A pointer to the TimeIntegrator
+  TimeIntegrator * _time_integrator;
+};

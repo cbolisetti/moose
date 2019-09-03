@@ -133,10 +133,16 @@ NodalTranslationalInertia::NodalTranslationalInertia(const InputParameters & par
                  node_found,
                  " nodes were found in the boundary.");
   }
+
   // Check for Explicit and alpha parameter
   if (_alpha != 0 && _time_integrator->isExplicit())
     mooseError("NodalTranslationalInertia: HHT time integration parameter can only be used with "
-               "Newmark-Beta time integrator.");
+               "Newmark-Beta time integration.");
+
+  // Check if beta and explicit are being used simultaneously
+  if (_has_beta && _time_integrator->isExplicit())
+    mooseError("NodalTranslationalInertia: Newmark-beta integration parameter, beta, cannot be provided along with an explicit time "
+               "integrator.");
 }
 
 Real

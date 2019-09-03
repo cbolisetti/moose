@@ -35,13 +35,12 @@
 # 0.25  0.011069233444348    0.020341382357756  0.0092295756535376
 
 [Mesh]
-  [./generated_mesh]
-    type = GeneratedMeshGenerator
-    xmin = 0.0
-    xmax = 4.0
-    dim = 1
-    nx = 10
-  [../]
+  type = GeneratedMesh
+  xmin = 0.0
+  xmax = 4.0
+  dim = 1
+  nx = 1
+  displacements = 'disp_x disp_y disp_z'
 []
 
 [Variables]
@@ -123,71 +122,71 @@
 []
 
 [AuxKernels]
-  [./accel_x]
+  [./accel_x] # These auxkernels are only to check output
     type = TestNewmarkTI
-    variable = accel_x
     displacement = disp_x
+    variable = accel_x
+    first = false
+  [../]
+  [./accel_y]
+    type = TestNewmarkTI
+    displacement = disp_y
+    variable = accel_y
+    first = false
+  [../]
+  [./accel_z]
+    type = TestNewmarkTI
+    displacement = disp_z
+    variable = accel_z
     first = false
   [../]
   [./vel_x]
     type = TestNewmarkTI
-    variable = vel_x
     displacement = disp_x
-  [../]
-  [./accel_y]
-    type = TestNewmarkTI
-    variable = accel_y
-    displacement = disp_y
-    first = false
+    variable = vel_x
   [../]
   [./vel_y]
     type = TestNewmarkTI
+    displacement = disp_y
     variable = vel_y
-    displacement = disp_x
-  [../]
-  [./accel_z]
-    type = TestNewmarkTI
-    variable = accel_z
-    displacement = disp_z
-    first = false
   [../]
   [./vel_z]
     type = TestNewmarkTI
-    variable = vel_z
     displacement = disp_z
+    variable = vel_z
   [../]
   [./rot_accel_x]
     type = TestNewmarkTI
-    variable = rot_accel_x
     displacement = rot_x
+    variable = rot_accel_x
+    first = false
+  [../]
+  [./rot_accel_y]
+    type = TestNewmarkTI
+    displacement = rot_y
+    variable = rot_accel_y
+    first = false
+  [../]
+  [./rot_accel_z]
+    type = TestNewmarkTI
+    displacement = rot_z
+    variable = rot_accel_z
     first = false
   [../]
   [./rot_vel_x]
     type = TestNewmarkTI
-    variable = rot_vel_x
     displacement = rot_x
-  [../]
-  [./rot_accel_y]
-    type = TestNewmarkTI
-    variable = rot_accel_y
-    displacement = rot_y
-    first = false
+    variable = rot_vel_x
   [../]
   [./rot_vel_y]
     type = TestNewmarkTI
+    displacement = rot_y
     variable = rot_vel_y
-    displacement = rot_x
-  [../]
-  [./rot_accel_z]
-    type = TestNewmarkTI
-    variable = rot_accel_z
-    displacement = rot_z
-    first = false
   [../]
   [./rot_vel_z]
     type = TestNewmarkTI
-    variable = rot_vel_z
     displacement = rot_z
+    variable = rot_vel_z
   [../]
 []
 
@@ -244,27 +243,6 @@
     type = PiecewiseLinear
     x = '0.0 0.05 0.1 10.0'
     y = '0.0 0.01  0.0  0.0'
-  [../]
-[]
-
-[Preconditioning]
-  [./smp]
-    type = SMP
-    full = true
-  [../]
-[]
-
-[Executioner]
-  type = Transient
-  solve_type = NEWTON
-
-  dt = 0.05
-  end_time = 5.0
-  timestep_tolerance = 1e-6
-  [./TimeIntegrator]
-    type = NewmarkBeta
-    beta = 0.25
-    gamma = 0.5
   [../]
 []
 
@@ -430,6 +408,27 @@
     Az = 0.0
     component = 5
     variable = rot_z
+  [../]
+[]
+
+[Preconditioning]
+  [./smp]
+    type = SMP
+    full = true
+  [../]
+[]
+
+[Executioner]
+  type = Transient
+  solve_type = NEWTON
+
+  dt = 1e-3
+  end_time = 5.0
+  timestep_tolerance = 1e-6
+  [./TimeIntegrator]
+    type = NewmarkBeta
+    beta = 0.25
+    gamma = 0.5
   [../]
 []
 

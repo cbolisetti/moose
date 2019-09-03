@@ -2,23 +2,25 @@
   design = "C0TimoshenkoBeam.md"
   issues = "#10313"
   [./dyn_euler]
-    type = 'Exodiff'
+    type = 'CSVDiff'
     input = 'dyn_euler_small.i'
-    exodiff = 'dyn_euler_small_out.e'
+    csvdiff = 'dyn_euler_small_out.csv'
 
     requirement = "The mechanics system shall correctly predict the natural frequencies"
                   " of an Euler-Bernoulli beam modeled using beam elements with"
                   " consistent mass/inertia."
   [../]
-  [./dyn_euler_TI]
-    type = 'Exodiff'
-    input = 'dyn_euler_small_explicit.i'
+  [./dyn_euler_TI_implicit]
+    type = 'CSVDiff'
+    input = 'dyn_euler_small_TI_implicit.i'
     cli_args = 'Outputs/file_base=dyn_euler_small_out'
-    exodiff = 'dyn_euler_small_out.e'
+    csvdiff = 'dyn_euler_small_out.csv'
 
     requirement = "The mechanics system shall correctly predict the natural frequencies"
                   " of an Euler-Bernoulli beam modeled using beam elements with"
-                  " consistent mass/inertia."
+                  " consistent mass/inertia and the accelerations and velocites calculated"
+                  " using the NewmarkBeta time integrator. The prediction shall be the same"
+                  " as that calculated without using the time integrator system."
     prereq = dyn_euler
   [../]
   [./dyn_timoshenko]

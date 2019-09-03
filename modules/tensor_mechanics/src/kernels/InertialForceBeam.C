@@ -164,16 +164,18 @@ InertialForceBeam::InertialForceBeam(const InputParameters & parameters)
   // Check for explicit and alpha
   if (_alpha != 0 && _time_integrator->isExplicit())
     mooseError("InertialForceBeam: HHT time integration parameter can only be used with Newmark-Beta "
-               "time integrator.");
+               "time integration.");
+
+  // Check for explicit and beta
+  if (_has_beta && _time_integrator->isExplicit())
+    mooseError("InertialForceBeam: Newmark-beta integration parameter, beta, cannot be provided along with an explicit time "
+               "integrator.");
 }
 
 void
 InertialForceBeam::computeResidual()
 {
-  DenseVector<Number> & re = _assembly.residualBlock(_var.number());
-  mooseAssert(re.size() == 2, "Beam element only has two nodes.");
-  _local_re.resize(re.size());
-  _local_re.zero();
+  prepareVectorTag(_assembly, _var.number());
 
   if (_dt != 0.0)
   {
@@ -248,7 +250,7 @@ InertialForceBeam::computeResidual()
                                    _gamma * _dt * _u_dotdot_residual_rot_1(i);
       }
     }
-    else
+    else // beta is not provided
     {
       if (!nonlinear_sys.solutionUDotOld())
         mooseError("InertialForceBeam: Old time derivative of solution (`u_dot_old`) is not "
@@ -469,22 +471,24 @@ InertialForceBeam::computeResidual()
     }
   }
 
-  re += _local_re;
+  accumulateTaggedLocalResidual();
 
   if (_has_save_in)
   {
     Threads::spin_mutex::scoped_lock lock(Threads::spin_mtx);
-    for (unsigned int i = 0; i < _save_in.size(); ++i)
-      _save_in[i]->sys().solution().add_vector(_local_re, _save_in[i]->dofIndices());
+    for (const auto & var : _save_in)
+      var->sys().solution().add_vector(_local_re, var->dofIndices());
   }
 }
 
 void
 InertialForceBeam::computeJacobian()
 {
-  DenseMatrix<Number> & ke = _assembly.jacobianBlock(_var.number(), _var.number());
-  _local_ke.resize(ke.m(), ke.n());
-  _local_ke.zero();
+  prepareMatrixTag(_assembly, _var.number(), _var.number());
+
+  // DenseMatrix<Number> & ke = _assembly.jacobianBlock(_var.number(), _var.number());
+  // _local_ke.resize(ke.m(), ke.n());
+  // _local_ke.zero();
 
   mooseAssert(_beta > 0.0, "InertialForceBeam: Beta parameter should be positive.");
 
@@ -492,22 +496,15 @@ InertialForceBeam::computeJacobian()
   if (_has_beta)
     factor = 1.0 / (_beta * _dt * _dt) + _eta[0] * (1.0 + _alpha) * _gamma / _beta / _dt;
   else
-    {
-      factor = (*_du_dotdot_du)[0] + _eta[0] * (1.0 + _alpha) * (*_du_dot_du)[0];
-      std::cout << "NO BETA FACTOR****\n" << factor << std::endl;
-    }
+    factor = (*_du_dotdot_du)[0] + _eta[0] * (1.0 + _alpha) * (*_du_dot_du)[0];
 
   for (unsigned int i = 0; i < _test.size(); ++i)
   {
     for (unsigned int j = 0; j < _phi.size(); ++j)
     {
       if (_component < 3)
-        {
           _local_ke(i, j) = (i == j ? 1.0 / 3.0 : 1.0 / 6.0) * _density[0] * _area[0] *
                           _original_length[0] * factor;
-          _local_ke.print();
-          std::cout << std::endl;
-        }
       else if (_component > 2)
       {
         RankTwoTensor I;
@@ -527,22 +524,18 @@ InertialForceBeam::computeJacobian()
     }
   }
 
-  ke += _local_ke;
+  accumulateTaggedLocalMatrix();
 
-  std::cout << "KE**\n";
-  ke.print();
-  std::cout << std::endl;
+  // std::cout << "KE**\n";
+  // ke.print();
+  // std::cout << std::endl;
 
   if (_has_diag_save_in)
   {
-    unsigned int rows = ke.m();
-    DenseVector<Number> diag(rows);
-    for (unsigned int i = 0; i < rows; ++i)
-      diag(i) = _local_ke(i, i);
-
+    DenseVector<Number> diag = _assembly.getJacobianDiagonal(_local_ke);
     Threads::spin_mutex::scoped_lock lock(Threads::spin_mtx);
-    for (unsigned int i = 0; i < _diag_save_in.size(); ++i)
-      _diag_save_in[i]->sys().solution().add_vector(diag, _diag_save_in[i]->dofIndices());
+    for (const auto & var : _diag_save_in)
+      var->sys().solution().add_vector(diag, var->dofIndices());
   }
 }
 
@@ -586,7 +579,7 @@ InertialForceBeam::computeOffDiagJacobian(MooseVariableFEBase & jvar)
       }
     }
 
-    DenseMatrix<Number> & ke = _assembly.jacobianBlock(_var.number(), jvar_num);
+    prepareMatrixTag(_assembly, _var.number(), jvar_num);
 
     if (disp_coupled || rot_coupled)
     {
@@ -606,7 +599,7 @@ InertialForceBeam::computeOffDiagJacobian(MooseVariableFEBase & jvar)
             const RankTwoTensor Ag =
                 _original_local_config[0].transpose() * A * _original_local_config[0];
 
-            ke(i, j) += (i == j ? 1.0 / 3.0 : 1.0 / 6.0) * _density[0] *
+            _local_ke(i, j) += (i == j ? 1.0 / 3.0 : 1.0 / 6.0) * _density[0] *
                         Ag(_component, coupled_component - 3) * _original_length[0] * factor;
           }
           else if (_component > 2 && coupled_component < 3)
@@ -621,7 +614,7 @@ InertialForceBeam::computeOffDiagJacobian(MooseVariableFEBase & jvar)
             const RankTwoTensor Ag =
                 _original_local_config[0].transpose() * A * _original_local_config[0];
 
-            ke(i, j) += (i == j ? 1.0 / 3.0 : 1.0 / 6.0) * _density[0] *
+            _local_ke(i, j) += (i == j ? 1.0 / 3.0 : 1.0 / 6.0) * _density[0] *
                         Ag(_component - 3, coupled_component) * _original_length[0] * factor;
           }
           else if (_component > 2 && coupled_component > 2)
@@ -638,13 +631,14 @@ InertialForceBeam::computeOffDiagJacobian(MooseVariableFEBase & jvar)
             const RankTwoTensor Ig =
                 _original_local_config[0].transpose() * I * _original_local_config[0];
 
-            ke(i, j) += (i == j ? 1.0 / 3.0 : 1.0 / 6.0) * _density[0] *
+            _local_ke(i, j) += (i == j ? 1.0 / 3.0 : 1.0 / 6.0) * _density[0] *
                         Ig(_component - 3, coupled_component - 3) * _original_length[0] * factor;
           }
         }
       }
     }
-    std::cout << "OFFDIAGONAL\n";
-    ke.print();
+
+    accumulateTaggedLocalMatrix();
+
   }
 }
