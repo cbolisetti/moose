@@ -45,11 +45,11 @@ CentralDifference::CentralDifference(const InputParameters & parameters)
   _fe_problem.setSolutionState(4);
 }
 
-void
-CentralDifference::computeADTimeDerivatives(DualReal & ad_u_dot, const dof_id_type & dof) const
-{
-  computeTimeDerivativeHelper(ad_u_dot, _solution_old(dof));
-}
+// void
+// CentralDifference::computeADTimeDerivatives(DualReal & ad_u_dot, const dof_id_type & dof) const
+// {
+//   computeTimeDerivativeHelper(ad_u_dot, _solution_old(dof));
+// }
 
 void
 CentralDifference::computeTimeDerivatives()
@@ -61,30 +61,14 @@ CentralDifference::computeTimeDerivatives()
   if (!_sys.solutionUDotDot())
     mooseError("CentralDifference: Time derivative of solution (`u_dotdot`) is not stored. Please "
                "set uDotDotRequested() to true in FEProblemBase before requesting `u_dot`.");
-  // computing second derivative
-  // using the Central Difference method
-  // u_dotdot_old = (first_term - second_term + third_term) / dt / dt
-  //       first_term = u
-  //      second_term = 2 * u_old
-  //       third_term = u_older
-  NumericVector<Number> & u_dotdot = *_sys.solutionUDotDot();
-  u_dotdot =
-      *_sys.solutionState(1); // solutionState(1) and solutionState(0) are equal at this point
-  u_dotdot -= *_sys.solutionState(2);
-  u_dotdot -= *_sys.solutionState(2);
-  u_dotdot += *_sys.solutionState(3);
-  u_dotdot *= 1.0 / (_dt * _dt);
 
-  // computing first derivative
-  // using the Central Difference method
-  // u_dot_old = (first_term - second_term) / 2 / dt
-  //       first_term = u
-  //      second_term = u_older
+  // Initializing derivatives to solutionState(1), i.e., solution_old
   NumericVector<Number> & u_dot = *_sys.solutionUDot();
-  u_dot = *_sys.solutionState(
-      1); // old solution, which is the same as the current solution at this point
-  u_dot -= *_sys.solutionState(3); // 'older than older' solution
-  u_dot *= 1.0 / (2.0 * _dt);
+  u_dot = *_sys.solutionState(1);
+  NumericVector<Number> & u_dotdot = *_sys.solutionUDotDot();
+  u_dotdot = *_sys.solutionState(1);
+  // Computing derivatives
+  computeTimeDerivativeHelper(u_dot, u_dot_dot, *_sys.solutionState(1), *_sys.solutionState(2), *_sys.solutionState(3));
 
   // make sure _u_dotdot and _u_dot are in good state
   u_dotdot.close();
@@ -101,7 +85,7 @@ CentralDifference::computeTimeDerivatives()
   _u_dotdot_residual -= _sys.solutionOld();
   _u_dotdot_residual *= 1.0 / (_dt * _dt);
 
-  // Computing udotdot residual
+  // Computing udot residual
   // u_dot_residual = u_dot - (u - u_old)/2/dt = (u - u_older)/ 2/ dt - (u - u_old)/2/dt
   // u_dot_residual = (u_old - u_older)/2/dt
   _u_dot_residual = _sys.solutionOld();
@@ -132,4 +116,59 @@ CentralDifference::uDotResidual() const
     return _u_dot_residual;
   else
     return *_sys.solutionUDotDot();
+}
+
+void
+CentralDifference::solve()
+{
+  // Reset iteration counts
+  _n_nonlinear_iterations = 0;
+  _n_linear_iterations = 0;
+
+  _current_time = _fe_problem.time();
+
+  // Set time to the time at which to evaluate the residual
+  _fe_problem.time() = _fe_problem.timeOld();
+  _nonlinear_implicit_system->update();
+
+  // Compute the residual
+  _explicit_residual.zero();
+  _fe_problem.computeResidual(*_nonlinear_implicit_system->current_local_solution,
+                              _explicit_residual);
+
+  // Move the residual to the RHS
+  _explicit_residual *= -1.0;
+
+  // Compute the mass matrix
+  auto & mass_matrix = *_nonlinear_implicit_system->matrix;
+  _fe_problem.computeJacobianTag(
+      *_nonlinear_implicit_system->current_local_solution, mass_matrix, _Ke_time_tag);
+
+  // Perform the linear solve
+  bool converged = performExplicitSolve(mass_matrix);
+
+  // Update the solution
+  *_nonlinear_implicit_system->solution = _nl.solutionOld();
+  *_nonlinear_implicit_system->solution += _solution_update;
+
+  // Enforce contraints on the solution
+  DofMap & dof_map = _nonlinear_implicit_system->get_dof_map();
+  dof_map.enforce_constraints_exactly(*_nonlinear_implicit_system,
+                                      _nonlinear_implicit_system->solution.get());
+  _nonlinear_implicit_system->update();
+
+  _nl.setSolution(*_nonlinear_implicit_system->current_local_solution);
+
+  _nonlinear_implicit_system->nonlinear_solver->converged = converged;
+}
+
+void
+CentralDifference::postResidual(NumericVector<Number> & residual)
+{
+  residual += _Re_time;
+  residual += _Re_non_time;
+  residual.close();
+
+  // Reset time to the time at which to evaluate nodal BCs, which comes next
+  _fe_problem.time() = _current_time;
 }
