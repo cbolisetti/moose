@@ -45,11 +45,17 @@ CentralDifference::CentralDifference(const InputParameters & parameters)
   _fe_problem.setSolutionState(4);
 }
 
-// void
-// CentralDifference::computeADTimeDerivatives(DualReal & ad_u_dot, const dof_id_type & dof) const
-// {
-//   computeTimeDerivativeHelper(ad_u_dot, _solution_old(dof));
-// }
+void
+CentralDifference::computeADTimeDerivatives(DualReal & ad_u_dot, const dof_id_type & dof) const
+{
+  const auto & u_old = (*_sys.solutionState(1))(dof);
+  const auto & u_old_old = (*_sys.solutionState(2))(dof);
+  const auto & u_old_old_old = (*_sys.solutionState(3))(dof);
+
+  auto u_dotdot = ad_u_dot; // TODO: Ask Alex if this has to be ad_u_dotdot. Currently, it will change u_dotdot when called. 
+
+  computeTimeDerivativeHelper(ad_u_dot, u_dotdot, u_old, u_old_old, u_old_old_old);
+}
 
 void
 CentralDifference::computeTimeDerivatives()
@@ -62,13 +68,19 @@ CentralDifference::computeTimeDerivatives()
     mooseError("CentralDifference: Time derivative of solution (`u_dotdot`) is not stored. Please "
                "set uDotDotRequested() to true in FEProblemBase before requesting `u_dot`.");
 
-  // Initializing derivatives to solutionState(1), i.e., solution_old
+  // Declaring u_dot and u_dotdot
   NumericVector<Number> & u_dot = *_sys.solutionUDot();
-  u_dot = *_sys.solutionState(1);
   NumericVector<Number> & u_dotdot = *_sys.solutionUDotDot();
+  NumericVector<Number> & u_old = *_sys.solutionState(1);
+  NumericVector<Number> & u_old_old = *_sys.solutionState(2);
+  NumericVector<Number> & u_old_old_old = *_sys.solutionState(3);
+
+  // Initializing derivatives to solutionState(1), i.e., solution_old
+  u_dot = *_sys.solutionState(1);
   u_dotdot = *_sys.solutionState(1);
+
   // Computing derivatives
-  computeTimeDerivativeHelper(u_dot, u_dot_dot, *_sys.solutionState(1), *_sys.solutionState(2), *_sys.solutionState(3));
+  computeTimeDerivativeHelper(u_dot, u_dotdot, u_old, u_old_old, u_old_old_old);
 
   // make sure _u_dotdot and _u_dot are in good state
   u_dotdot.close();

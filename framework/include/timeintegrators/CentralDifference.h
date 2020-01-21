@@ -48,13 +48,13 @@ protected:
   /**
    * Helper function that actually does the math for computing the time derivative
    */
-  template <typename T, typename T2>
-  void computeTimeDerivativeHelper(T & u_dot, const T2 & u_old) const;
+  template <typename T, typename T2, typename T3, typename T4, typename T5>
+  void computeTimeDerivativeHelper(T & u_dot, T & u_dotdot, const T2 & u_old, const T2 & u_old_old, const T2 & u_old_old_old) const;
 };
 
-template <typename T, typename T2>
+template <typename T, typename T2, typename T3, typename T4, typename T5>
 void
-ActuallyExplicitEuler::computeTimeDerivativeHelper(T & u_dot, T & u_dot_dot, const T2 & u_old, const T2 & u_old_old, const T2 & u_old_old_old) const
+ActuallyExplicitEuler::computeTimeDerivativeHelper(T & u_dot, T & u_dotdot, const T2 & u_old, const T2 & u_old_old, const T2 & u_old_old_old) const
 {
   // computing first derivative
   // using the Central Difference method
@@ -63,7 +63,7 @@ ActuallyExplicitEuler::computeTimeDerivativeHelper(T & u_dot, T & u_dot_dot, con
   //      second_term = u_older
   u_dot -= u_old_old_old; // 'older than older' solution
   u_dot *= 1.0 / (2.0 * _dt);
-  
+
   // computing second derivative
   // using the Central Difference method
   // u_dotdot_old = (first_term - second_term + third_term) / dt / dt
