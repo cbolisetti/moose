@@ -169,7 +169,7 @@
 [Executioner]
   type = Transient
   start_time = -0.01
-  end_time = 2
+  end_time = 0.1
   dt = 0.005
   timestep_tolerance = 1e-6
   [./TimeIntegrator]
@@ -178,24 +178,6 @@
 []
 
 [Postprocessors]
-  [./_dt]
-    type = TimestepSize
-  [../]
-  [./disp_10x]
-    type = NodalVariableValue
-    nodeid = 10
-    variable = disp_x
-  [../]
-  [./disp_10y]
-    type = NodalVariableValue
-    nodeid = 10
-    variable = disp_y
-  [../]
-  [./disp_10z]
-    type = NodalVariableValue
-    nodeid = 10
-    variable = disp_z
-  [../]
   [./accel_10x]
     type = NodalVariableValue
     nodeid = 10
@@ -206,6 +188,4 @@
 [Outputs]
   exodus = false
   csv = true
-  perf_graph = true
-  interval = 100
 []

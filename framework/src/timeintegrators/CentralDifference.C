@@ -21,7 +21,7 @@ template <>
 InputParameters
 validParams<CentralDifference>()
 {
-  InputParameters params = validParams<ExplicitTimeIntegrator>();
+  InputParameters params = validParams<ActuallyExplicitEuler>();
 
   params.addClassDescription("Implementation of explicit, Central Difference integration without "
                              "invoking any of the nonlinear solver");
@@ -30,7 +30,7 @@ validParams<CentralDifference>()
 }
 
 CentralDifference::CentralDifference(const InputParameters & parameters)
-  : ExplicitTimeIntegrator(parameters),
+  : ActuallyExplicitEuler(parameters),
     _du_dotdot_du(_sys.duDotDotDu()),
     _u_dotdot_residual(_sys.addVector("u_dotdot_residual", true, GHOSTED)),
     _u_dot_residual(_sys.addVector("u_dot_residual", true, GHOSTED))
@@ -128,59 +128,4 @@ CentralDifference::uDotResidual() const
     return _u_dot_residual;
   else
     return *_sys.solutionUDotDot();
-}
-
-void
-CentralDifference::solve()
-{
-  // Reset iteration counts
-  _n_nonlinear_iterations = 0;
-  _n_linear_iterations = 0;
-
-  _current_time = _fe_problem.time();
-
-  // Set time to the time at which to evaluate the residual
-  _fe_problem.time() = _fe_problem.timeOld();
-  _nonlinear_implicit_system->update();
-
-  // Compute the residual
-  _explicit_residual.zero();
-  _fe_problem.computeResidual(*_nonlinear_implicit_system->current_local_solution,
-                              _explicit_residual);
-
-  // Move the residual to the RHS
-  _explicit_residual *= -1.0;
-
-  // Compute the mass matrix
-  auto & mass_matrix = *_nonlinear_implicit_system->matrix;
-  _fe_problem.computeJacobianTag(
-      *_nonlinear_implicit_system->current_local_solution, mass_matrix, _Ke_time_tag);
-
-  // Perform the linear solve
-  bool converged = performExplicitSolve(mass_matrix);
-
-  // Update the solution
-  *_nonlinear_implicit_system->solution = _nl.solutionOld();
-  *_nonlinear_implicit_system->solution += _solution_update;
-
-  // Enforce contraints on the solution
-  DofMap & dof_map = _nonlinear_implicit_system->get_dof_map();
-  dof_map.enforce_constraints_exactly(*_nonlinear_implicit_system,
-                                      _nonlinear_implicit_system->solution.get());
-  _nonlinear_implicit_system->update();
-
-  _nl.setSolution(*_nonlinear_implicit_system->current_local_solution);
-
-  _nonlinear_implicit_system->nonlinear_solver->converged = converged;
-}
-
-void
-CentralDifference::postResidual(NumericVector<Number> & residual)
-{
-  residual += _Re_time;
-  residual += _Re_non_time;
-  residual.close();
-
-  // Reset time to the time at which to evaluate nodal BCs, which comes next
-  _fe_problem.time() = _current_time;
 }

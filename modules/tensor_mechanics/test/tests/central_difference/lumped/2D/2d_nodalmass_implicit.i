@@ -28,47 +28,38 @@
 []
 
 [AuxVariables]
-  [./vel_x]
-  [../]
   [./accel_x]
   [../]
-  [./vel_y]
+  [./vel_x]
   [../]
   [./accel_y]
   [../]
-  [./vel_z]
-  [../]
-  [./accel_z]
+  [./vel_y]
   [../]
 []
 
 [AuxKernels]
   [./accel_x]
-    type = NewmarkAccelAux
+    type = TestNewmarkTI
     variable = accel_x
     displacement = disp_x
-    velocity = vel_x
-    beta = 0.25
-    execute_on = timestep_end
+    first = false
   [../]
   [./vel_x]
-    type = NewmarkVelAux
+    type = TestNewmarkTI
     variable = vel_x
-    acceleration = accel_x
-    gamma = 0.5
+    displacement = disp_x
   [../]
   [./accel_y]
-    type = NewmarkAccelAux
+    type = TestNewmarkTI
     variable = accel_y
     displacement = disp_y
-    velocity = vel_y
-    beta = 0.25
+    first = false
   [../]
   [./vel_y]
-    type = NewmarkVelAux
+    type = TestNewmarkTI
     variable = vel_y
-    acceleration = accel_y
-    gamma = 0.5
+    displacement = disp_y
   [../]
 []
 
@@ -150,7 +141,7 @@
   nl_abs_tol = 1e-11
   nl_rel_tol = 1e-11
   start_time = -0.01
-  end_time = 2
+  end_time = 0.1
   dt = 0.005
   timestep_tolerance = 1e-6
   [./TimeIntegrator]
@@ -161,24 +152,14 @@
 []
 
 [Postprocessors]
-  [./_dt]
-    type = TimestepSize
-  [../]
-  [./disp_2x]
+  [./accel_2x]
     type = PointValue
     point = '1.0 2.0 0.0'
-    variable = disp_x
-  [../]
-  [./disp_2y]
-    type = PointValue
-    point = '1.0 2.0 0.0'
-    variable = disp_y
+    variable = accel_x
   [../]
 []
 
 [Outputs]
   exodus = false
   csv = true
-  perf_graph = true
-  interval = 100
 []

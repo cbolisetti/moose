@@ -212,16 +212,7 @@ NodalTranslationalInertia::computeQpJacobian()
     }
     if (_has_beta)
       return mass / (_beta * _dt * _dt) + _eta * (1 + _alpha) * mass * _gamma / _beta / _dt;
-    else if (_time_integrator->isExplicit())
-    {
-      // for explicit central difference integration, _eta does not appear in the
-      // Jacobian (mass matrix), and alpha is zero
-      return mass * (*_du_dotdot_du)[_qp];
-    }
     else
-    {
-      // for NewmarkBeta time integrator
       return mass * (*_du_dotdot_du)[_qp] + _eta * (1.0 + _alpha) * mass * (*_du_dot_du)[_qp];
-    }
   }
 }

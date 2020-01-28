@@ -94,30 +94,3 @@ protected:
   /// Save off current time to reset it back and forth
   Real _current_time;
 };
-
-// /**
-//  * Helper class to apply lumped mass matrix preconditioner
-//  */
-// class LumpedPreconditioner : public Preconditioner<Real>
-// {
-// public:
-//   LumpedPreconditioner(const NumericVector<Real> & diag_inverse)
-//     : Preconditioner(diag_inverse.comm()), _diag_inverse(diag_inverse)
-//   {
-//   }
-//
-//   virtual void init() override
-//   {
-//     // No more initialization needed here
-//     _is_initialized = true;
-//   }
-//
-//   virtual void apply(const NumericVector<Real> & x, NumericVector<Real> & y) override
-//   {
-//     y.pointwise_mult(_diag_inverse, x);
-//   }
-//
-// protected:
-//   /// The inverse of the diagonal of the lumped matrix
-//   const NumericVector<Real> & _diag_inverse;
-// };

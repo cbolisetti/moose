@@ -2,7 +2,7 @@
   design = 'CentralDifference.md'
   issues = '#13964 #9726'
 
-  # 1D implicit analysis with Newmark Beta time integration
+  # 1D implicit analysis with Newmark-Beta time integration
   [./implicit]
     type = 'CSVDiff'
     input = '1d_consistent_implicit.i'

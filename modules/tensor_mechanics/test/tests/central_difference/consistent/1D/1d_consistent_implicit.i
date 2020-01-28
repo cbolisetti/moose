@@ -1,4 +1,5 @@
-# Test for central difference integration for a 1D element
+# Test for Newmark Beta integration for a 1D element
+# Consistent mass matrix
 
 [Mesh]
   type = GeneratedMesh
@@ -12,6 +13,27 @@
   [./disp_x]
     order = FIRST
     family = LAGRANGE
+  [../]
+[]
+
+[AuxVariables]
+  [./accel_x]
+  [../]
+  [./vel_x]
+  [../]
+[]
+
+[AuxKernels]
+  [./accel_x]
+    type = TestNewmarkTI
+    variable = accel_x
+    displacement = disp_x
+    first = false
+  [../]
+  [./vel_x]
+    type = TestNewmarkTI
+    variable = vel_x
+    displacement = disp_x
   [../]
 []
 
@@ -72,7 +94,7 @@
     type = GenericConstantMaterial
     block = 0
     prop_names = density
-    prop_values = 150
+    prop_values = 2500
   [../]
 []
 
@@ -84,7 +106,7 @@
   dtmin = 1e-4
   timestep_tolerance = 1e-6
   start_time = -0.005
-  end_time = 4
+  end_time = 0.1
   dt = 0.005
   [./TimeIntegrator]
     type = NewmarkBeta
@@ -95,9 +117,19 @@
 
 [Postprocessors]
   [./disp_x]
-    type = PointValue
-    point = '10.0 0.0 0.0'
+    type = NodalVariableValue
+    nodeid = 1
     variable = disp_x
+  [../]
+  [./vel_x]
+    type = NodalVariableValue
+    nodeid = 1
+    variable = vel_x
+  [../]
+  [./accel_x]
+    type = NodalVariableValue
+    nodeid = 1
+    variable = accel_x
   [../]
 []
 
@@ -105,5 +137,4 @@
   exodus = false
   csv = true
   perf_graph = false
-  interval = 100
 []

@@ -4,7 +4,7 @@
 
 ## Description
 
-Central difference integration is a common explicit integration scheme, typically used for structural dynamics problems. For a variable, $u$, at time $t$ with a time step, $\Delta t$, the central difference approximations for the first and second time derivatives, $\dot{u}$ and $\ddot{u}$, are given as,
+Central difference integration is a common explicit integration scheme, typically used in structural dynamics. For a variable, $u$, at time $t$ with a time step, $\Delta t$, the central difference approximations for the first and second time derivatives, $\dot{u}$ and $\ddot{u}$, are given as,
 
 \begin{equation}
 \begin{aligned}
@@ -13,11 +13,11 @@ Central difference integration is a common explicit integration scheme, typicall
 \end{aligned}
 \end{equation}
 
-The central difference time integrator derives from the [`ActuallyExplicitEuler`](ActuallyExplicitEuler.md) class and therefore circumvents the nonlinear solver. It can be used with `consistent`, `lumped` or `lump_preconditioned`, `solve_type` options.
+The central difference time integrator derives from the [`ActuallyExplicitEuler`](ActuallyExplicitEuler.md) class and therefore circumvents the nonlinear solver. It can be used with `consistent`, `lumped` or `lump_preconditioned`, `solve_type` options. Information on these solve options can be found on the [`ActuallyExplicitEuler`](ActuallyExplicitEuler.md) page.
 
 ## Assumptions
 
-The implementation of the central difference timeintegrator assumes that corresponding kernels involving the first and second derivatives directly use the derivatives calculates by the timeintegrator. Currently, only the `InertialForce` kernel and the `NodalKernels` corresponding to nodal inertias are modified to work with the central difference timeintegrator. Therefore, the central difference time integrator can currently only be used for mechanics problems with solid elements. 
+The implementation of the central difference timeintegrator assumes that corresponding kernels involving the first and second derivatives directly use the derivatives calculates by the timeintegrator. Currently, only the inertia kernels, `InertialForce`, `NodalTranslationalInertia`, and `NodalRotationalInertia` have been modified to work with the central difference timeintegrator. Inertia kernels corresponding to beam and shell elements are yet to be modified to work with the central difference time integrator.  
 
 !syntax parameters /Executioner/TimeIntegrator/CentralDifference
 

@@ -180,18 +180,9 @@ InertialForce::computeQpJacobian()
       return _test[_i][_qp] * _density[_qp] / (_beta * _dt * _dt) * _phi[_j][_qp] +
              _eta[_qp] * (1 + _alpha) * _test[_i][_qp] * _density[_qp] * _gamma / _beta / _dt *
                  _phi[_j][_qp];
-    else if (_time_integrator->isExplicit())
-    {
-      // for explicit central difference integration, _eta does not appear in the
-      // Jacobian (mass matrix), and alpha is zero
-      return _test[_i][_qp] * _density[_qp] * (*_du_dotdot_du)[_qp] * _phi[_j][_qp];
-    }
     else
-    {
-      // for NewmarkBeta time integrator
       return _test[_i][_qp] * _density[_qp] * (*_du_dotdot_du)[_qp] * _phi[_j][_qp] +
              _eta[_qp] * (1 + _alpha) * _test[_i][_qp] * _density[_qp] * (*_du_dot_du)[_qp] *
                  _phi[_j][_qp];
-    }
   }
 }

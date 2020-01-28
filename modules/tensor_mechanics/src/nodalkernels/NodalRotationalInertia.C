@@ -297,12 +297,7 @@ NodalRotationalInertia::computeQpOffDiagJacobian(unsigned int jvar)
     if (_has_beta)
       return _inertia(_component, coupled_component) / (_beta * _dt * _dt) +
              _eta * (1.0 + _alpha) * _inertia(_component, coupled_component) * _gamma / _beta / _dt;
-    else if (_time_integrator->isExplicit())
-      // for explicit central difference integration, _eta does not appear in the
-      // Jacobian (mass matrix), and alpha is zero
-      return _inertia(_component, coupled_component) * (*_du_dotdot_du)[_qp];
     else
-      // for NewmarkBeta time integrator
       return _inertia(_component, coupled_component) * (*_du_dotdot_du)[_qp] +
              _eta * (1.0 + _alpha) * _inertia(_component, coupled_component) * (*_du_dot_du)[_qp];
   }

@@ -19,8 +19,27 @@
 
 [Variables]
   [./disp_x]
-    order = FIRST
-    family = LAGRANGE
+  [../]
+[]
+
+[AuxVariables]
+  [./accel_x]
+  [../]
+  [./vel_x]
+  [../]
+[]
+
+[AuxKernels]
+  [./accel_x]
+    type = TestNewmarkTI
+    variable = accel_x
+    displacement = disp_x
+    first = false
+  [../]
+  [./vel_x]
+    type = TestNewmarkTI
+    variable = vel_x
+    displacement = disp_x
   [../]
 []
 
@@ -85,7 +104,7 @@
 [Executioner]
   type = Transient
   start_time = -0.01
-  end_time = 2
+  end_time = 0.1
   dt = 0.005
   timestep_tolerance = 2e-10
   [./TimeIntegrator]
@@ -94,16 +113,14 @@
 []
 
 [Postprocessors]
-  [./disp_x]
+  [./accel_x]
     type = PointValue
     point = '10.0 0.0 0.0'
-    variable = disp_x
+    variable = accel_x
   [../]
 []
 
 [Outputs]
   exodus = false
   csv = true
-  perf_graph = false
-  interval = 100
 []

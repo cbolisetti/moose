@@ -20,6 +20,42 @@
   [../]
 []
 
+[AuxVariables]
+  [./accel_x]
+  [../]
+  [./vel_x]
+  [../]
+  [./accel_y]
+  [../]
+  [./vel_y]
+  [../]
+[]
+
+[AuxKernels]
+  [./accel_x]
+    type = TestNewmarkTI
+    variable = accel_x
+    displacement = disp_x
+    first = false
+  [../]
+  [./vel_x]
+    type = TestNewmarkTI
+    variable = vel_x
+    displacement = disp_x
+  [../]
+  [./accel_y]
+    type = TestNewmarkTI
+    variable = accel_y
+    displacement = disp_y
+    first = false
+  [../]
+  [./vel_y]
+    type = TestNewmarkTI
+    variable = vel_y
+    displacement = disp_y
+  [../]
+[]
+
 [Kernels]
   [./DynamicTensorMechanics]
     displacements = 'disp_x disp_y'
@@ -85,7 +121,7 @@
 [Executioner]
   type = Transient
   start_time = 0
-  end_time = 2
+  end_time = 0.1
   dt = 0.005
   timestep_tolerance = 1e-6
   [./TimeIntegrator]
@@ -95,24 +131,14 @@
 []
 
 [Postprocessors]
-  [./_dt]
-    type = TimestepSize
-  [../]
-  [./disp_2x]
+  [./accel_2x]
     type = PointValue
     point = '1.0 2.0 0.0'
-    variable = disp_x
-  [../]
-  [./disp_2y]
-    type = PointValue
-    point = '1.0 2.0 0.0'
-    variable = disp_y
+    variable = accel_x
   [../]
 []
 
 [Outputs]
   exodus = false
   csv = true
-  perf_graph = true
-  interval = 100
 []
