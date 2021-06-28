@@ -51,6 +51,9 @@ protected:
   /// Newmark time integration parameter-gamma
   Real _gamma;
 
+  /// Newmark time integration parameter-gamma
+  Real _static;
+
   /// solution vector for \f$ {du^dotdot}\over{du} \f$
   Real & _du_dotdot_du;
 };

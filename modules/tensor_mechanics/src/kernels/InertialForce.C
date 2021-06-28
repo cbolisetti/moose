@@ -66,6 +66,7 @@ InertialForce::InertialForce(const InputParameters & parameters)
     _u_dot_old = &(_var.uDotOld());
     _du_dot_du = &(_var.duDotDu());
     _du_dotdot_du = &(_var.duDotDotDu());
+    _udotdot = &(_var.uDotDot());
 
     addFEVariableCoupleableVectorTag(_time_integrator.uDotFactorTag());
     addFEVariableCoupleableVectorTag(_time_integrator.uDotDotFactorTag());
@@ -106,6 +107,8 @@ InertialForce::computeQpResidual()
                  (((_u[_qp] - (*_u_old)[_qp]) / (_dt * _dt)) - (*_vel_old)[_qp] / _dt -
                   (*_accel_old)[_qp] * (0.5 - _beta));
     Real vel = (*_vel_old)[_qp] + (_dt * (1 - _gamma)) * (*_accel_old)[_qp] + _gamma * _dt * accel;
+    // if (_qp==4)
+    //   std::cout << "Non-TI udotdot factor!!****\t" << accel << std::endl;
     return _test[_i][_qp] * _density[_qp] *
            (accel + vel * _eta[_qp] * (1 + _alpha) - _alpha * _eta[_qp] * (*_vel_old)[_qp]);
   }
@@ -119,9 +122,17 @@ InertialForce::computeQpResidual()
   // Consistent mass option
   // Same for explicit, implicit, and implicit with HHT
   else
-    return _test[_i][_qp] * _density[_qp] *
+    {
+      // if (_qp==4)
+      //   {
+      //     // auto test_accel = &(_var.uDotDot());
+      //     // auto test_accel = _sys.solutionUDotDot();
+      //     std::cout << "TI udotdot factor!!****\t" << (*_u_dotdot_factor)[_qp] << "\t" << (*_udotdot)[_qp] << std::endl;
+      //     // std::cout << "TI udotdot factor!!****\t" << (*_u_dotdot_factor)[_qp] << "\n";
+      //   }
+      return _test[_i][_qp] * _density[_qp] *
            ((*_u_dotdot_factor)[_qp] + (*_u_dot_factor)[_qp] * _eta[_qp] * (1.0 + _alpha) -
-            _alpha * _eta[_qp] * (*_u_dot_old)[_qp]);
+            _alpha * _eta[_qp] * (*_u_dot_old)[_qp]);}
 }
 
 void

@@ -23,6 +23,7 @@ NewmarkBeta::validParams()
       "Computes the first and second time derivative of variable using Newmark-Beta method.");
   params.addRangeCheckedParam<Real>("beta", 0.25, "beta > 0.0", "beta value");
   params.addRangeCheckedParam<Real>("gamma", 0.5, "gamma >= 0.5", "gamma value");
+  params.addParam<bool>("static_initialization", false, "static init stuff");
   return params;
 }
 
@@ -30,6 +31,7 @@ NewmarkBeta::NewmarkBeta(const InputParameters & parameters)
   : TimeIntegrator(parameters),
     _beta(getParam<Real>("beta")),
     _gamma(getParam<Real>("gamma")),
+    _static(getParam<bool>("static_initialization")),
     _du_dotdot_du(_sys.duDotDotDu())
 {
   _fe_problem.setUDotOldRequested(true);
@@ -76,6 +78,12 @@ NewmarkBeta::computeTimeDerivatives()
   u_dotdot = *_solution;
 
   computeTimeDerivativeHelper(u_dot, _solution_old, u_dot_old, u_dotdot, u_dotdot_old);
+
+  // if (_static && _t_step<=1)
+  //   {
+  //     u_dotdot.zero();
+  //     u_dot.zero();
+  //   }
 
   // make sure _u_dotdot and _u_dot are in good state
   u_dotdot.close();

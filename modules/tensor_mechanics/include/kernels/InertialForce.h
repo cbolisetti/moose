@@ -51,6 +51,7 @@ private:
   const VariableValue * _u_dot_old;
   const VariableValue * _du_dot_du;
   const VariableValue * _du_dotdot_du;
+  const VariableValue * _udotdot;
 
   /// The TimeIntegrator
   TimeIntegrator & _time_integrator;
